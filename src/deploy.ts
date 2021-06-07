@@ -11,10 +11,9 @@
  * @version 1.2
  */
 
-import yargs from "yargs";
-import path from "path";
-import fs from "fs";
-import fg from "fast-glob";
+import * as path from "path";
+import * as fs from "fs";
+import { sync as fgSync } from "fast-glob";
 import { CloudFront, S3 } from "aws-sdk";
 import { lookup } from "mime-types";
 import Prompt from "prompt-sync";
@@ -24,29 +23,20 @@ import { parseDotEnv } from "./helpers";
 
 const cwd = process.cwd();
 
-const args = yargs
-  .option("stage", {
-    default: process.env.STAGE,
-    type: "string",
-  })
-  .option("version", {
-    type: "string",
-  }).argv;
-
 (async () => {
   /**
    * Set up env
    *  - the env names have the stage in them to allow for easy CI variable setting
    */
 
-  const stage: string = (args as any).stage;
+  const stage: string = process.env.STAGE;
   if (!stage) {
-    console.error("No STAGE set");
+    console.error("FATAL\t No STAGE set");
     process.exit(1);
   }
 
-  console.info(`Stage: ${stage}`);
-  console.info(`Workdir: ${cwd}`);
+  console.info(`INFO\t STAGE: ${stage}`);
+  console.info(`INFO\t CWD: ${cwd}`);
 
   const prodEnv: Record<string, any> = {};
   const deployEnv: Record<string, any> = {
@@ -71,7 +61,7 @@ const args = yargs
     fs.existsSync(path.join(cwd, `.env.${stage}.secrets`))
   ) {
     // this should file not be committed to git
-    console.warn(`[DANGER] .env.${stage}.secrets found in CI`);
+    console.warn(`DANGER\t .env.${stage}.secrets found in CI`);
   }
 
   for (const [key, value] of Object.entries(origEnv)) {
@@ -86,14 +76,14 @@ const args = yargs
 
   for (const [key, value] of Object.entries(deployEnv)) {
     if (value === undefined) {
-      console.error(`Env ${key} not set`);
+      console.error(`FATAL\t Enviorment variable ${key} is required`);
       process.exit(1);
     }
   }
 
-  console.info(`Region: ${deployEnv.AWS_REGION}`);
-  console.info(`Bucket: ${deployEnv.DEPLOY_BUCKET}`);
-  console.info(`Build path: ${deployEnv.BUILD_PATH}`);
+  console.info(`INFO\t AWS_REGION: ${deployEnv.AWS_REGION}`);
+  console.info(`INFO\t DEPLOY_BUCKET: ${deployEnv.DEPLOY_BUCKET}`);
+  console.info(`INFO\t BUILD_PATH: ${deployEnv.BUILD_PATH}`);
 
   /**
    * Patch index.html with release/version
@@ -106,35 +96,41 @@ const args = yargs
       RELEASE = process.env.CIRCLE_SHA1;
     } else if (process.env.BITBUCKET_COMMIT) {
       RELEASE = process.env.BITBUCKET_COMMIT;
-    } else if (fs.existsSync(".git")) {
-      const ref = await resolveRef({ fs, dir: cwd, ref: "HEAD" });
-      const sM = (await statusMatrix({ fs, dir: cwd, ref })).filter(
-        (row) => row[2] !== row[3]
-      );
-      if (sM.length > 0) {
-        RELEASE = `${RELEASE}-dev`;
-        console.log(`WARNING: Uncommitted changes`);
-        if (!process.env.IGNORE_GIT_CHANGES) {
-          console.error(
-            "Can not deploy if changed are in git (IGNORE_GIT_CHANGES not set)"
-          );
-          process.exit(1);
+    } else {
+      try {
+        const ref = await resolveRef({ fs, dir: cwd, ref: "HEAD" });
+        const sM = (await statusMatrix({ fs, dir: cwd, ref })).filter(
+          (row) => row[2] !== row[3]
+        );
+        if (sM.length > 0) {
+          RELEASE = `${ref}-dev`;
+          if (!process.env.IGNORE_GIT_CHANGES) {
+            console.error(
+              "ERROR\t Can not deploy if changed are in git (IGNORE_GIT_CHANGES not set)"
+            );
+            process.exit(1);
+          } else {
+            console.log(`WARNING\t Uncommitted changes`);
+          }
+        } else {
+          RELEASE = ref;
         }
-      } else {
-        RELEASE = ref;
+      } catch (e) {
+        console.log(`WARNING\t ${e.toString()}`);
+        RELEASE = 'undefined';
       }
     }
   }
 
   // get version
-  let VERSION = (args as any).version || process.env.VERSION || "";
+  let VERSION = process.env.VERSION || "";
   if (!VERSION) {
     if (process.env.CIRCLE_TAG) {
       VERSION = process.env.CIRCLE_TAG;
     } else if (process.env.BITBUCKET_TAG) {
       VERSION = process.env.BITBUCKET_TAG;
     } else {
-      VERSION = "untagged";
+      VERSION = RELEASE
       // todo, get tag from git
     }
   }
@@ -148,38 +144,43 @@ const args = yargs
     })
     .join(";");
 
-  console.info(`Variables:`);
-
   console.log(
     Object.entries(prodEnv)
       .map(([key, value]) => {
-        return `${key}=${value}`;
+        return `INFO\t ${key}: ${value}`;
       })
       .join("\n")
   );
 
-  if (!process.env.CI && !process.env.FORCE_DEPLOY) {
-    const prompt = Prompt({ sigint: true });
-    const yes = prompt('Enter "yes" to deploy: ');
-    if (yes !== "yes") {
-      console.log("Stopping deploy");
-      process.exit();
-    }
-  }
-
   for (const fileName of deployEnv.INDEX_FILES.split(",")) {
     const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
 
-    fs.writeFileSync(
-      filePath,
-      fs
-        .readFileSync(filePath, "utf8")
-        .replace(
-          /<script id="env-data">[^<]*<\/script>/,
-          `<script id="env-data">${envData}</script>`
-        ),
-      "utf8"
-    );
+    const fileContents = fs
+      .readFileSync(filePath, "utf8");
+
+    if (!fileContents.includes("<script id=\"env-data\">")) {
+      console.log(`WARNING\t ${fileName} does not contain env-data`);
+    } else {
+      console.log(`INFO\t Writing env-data into ${fileName}`);
+      fs.writeFileSync(
+        filePath,
+        fileContents
+          .replace(
+            /<script id="env-data">[^<]*<\/script>/,
+            `<script id="env-data">${envData}</script>`
+          ),
+        "utf8"
+      );
+    }
+  }
+
+  if (!process.env.CI || !process.env.FORCE_DEPLOY) {
+    const prompt = Prompt({ sigint: true });
+    const yes = prompt('\nEnter "yes" to deploy: ');
+    if (yes !== "yes") {
+      console.log("FATAL\tStopping deploy");
+      process.exit();
+    }
   }
 
   /**
@@ -197,7 +198,7 @@ const args = yargs
     ...deployEnv.INDEX_FILES.split(","),
   ];
 
-  const cachedFiles = fg.sync(`**`, {
+  const cachedFiles = fgSync(`**`, {
     ignore: importantFiles,
     cwd: deployEnv.BUILD_PATH,
   });
@@ -232,7 +233,7 @@ const args = yargs
           ContentType: lookup(filePath) || "application/octet-stream",
         })
         .promise();
-      console.info(`Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`);
+      console.info(`INFO\t Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`);
     })
   );
 
@@ -254,7 +255,7 @@ const args = yargs
             ContentType: lookup(filePath) || "application/octet-stream",
           })
           .promise();
-        console.info(`Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`);
+        console.info(`INFO\t Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`);
       }
     })
   );
@@ -276,7 +277,7 @@ const args = yargs
       })
       .promise();
     console.info(
-      `CloudFormation Invalidation: ${
+      `INFO\t CloudFormation Invalidation: ${
         response?.Invalidation?.Status || "Unknown"
       }`
     );

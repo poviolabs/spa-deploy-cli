@@ -40,11 +40,9 @@ BUILD_PATH=./build # optional, defaults to `${__dirname}/build`
 
 .env.stage.secrets
 ```dotenv
-AWS_ACCESS_KEY_ID= # do not save to git
-AWS_SECRET_ACCESS_KEY= # do not save to git
+AWS_ACCESS_KEY_ID= 
+AWS_SECRET_ACCESS_KEY=
 ```
-
-
 
 ## Per stage overrides
 
