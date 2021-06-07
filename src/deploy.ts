@@ -11,10 +11,10 @@
  * @version 1.2
  */
 
-import * as yargs from "yargs";
-import * as path from "path";
-import * as fs from "fs";
-import * as fg from "fast-glob";
+import yargs from "yargs";
+import path from "path";
+import fs from "fs";
+import fg from "fast-glob";
 import { CloudFront, S3 } from "aws-sdk";
 import { lookup } from "mime-types";
 import Prompt from "prompt-sync";
@@ -22,7 +22,6 @@ import { resolveRef, statusMatrix } from "isomorphic-git";
 
 import { parseDotEnv } from "./helpers";
 
-const prompt = Prompt({ sigint: true });
 const cwd = process.cwd();
 
 const args = yargs
@@ -160,6 +159,7 @@ const args = yargs
   );
 
   if (!process.env.CI && !process.env.FORCE_DEPLOY) {
+    const prompt = Prompt({ sigint: true });
     const yes = prompt('Enter "yes" to deploy: ');
     if (yes !== "yes") {
       console.log("Stopping deploy");

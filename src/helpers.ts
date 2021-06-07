@@ -13,23 +13,22 @@
 
 import * as dotenv from "dotenv";
 import * as fs from "fs";
-import * as path from "path";
 
 /**
  * Load from .env.${STAGE||local} or .env
  *  - override values with prefixes if they exist
  */
 export function parseDotEnv(
-  roots: string[] = [path.join(__dirname, "..")],
+  envFiles: string[],
   stage: string
 ): Record<string, string> {
   const out: Record<string, any> = { ...process.env };
   const ustage = stage.replace(/-/g, "_");
-  for (const root of roots) {
-    if (fs.existsSync(root)) {
+  for (const envFile of envFiles) {
+    if (fs.existsSync(envFile)) {
       // eslint-disable-next-line no-console
       for (const [key, value] of Object.entries(
-        dotenv.parse(fs.readFileSync(root))
+        dotenv.parse(fs.readFileSync(envFile))
       )) {
         if (key.startsWith(`STAGE_${stage}_`)) {
           out[key.replace(`STAGE_${stage}_`, "")] = value;
@@ -41,7 +40,7 @@ export function parseDotEnv(
         }
       }
     } else {
-      console.log(`NOTICE: ${root} does not exist`);
+      console.log(`NOTICE: ${envFile} does not exist`);
     }
   }
   // override with env
