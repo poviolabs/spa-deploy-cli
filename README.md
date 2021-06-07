@@ -49,10 +49,12 @@ AWS_SECRET_ACCESS_KEY=
 Some CI services are limited to one set of variables, you can use a
 prefix `STAGE_[stage]`, that will get used at build.
 
-Example: `STAGE_myapp_dev_AWS_REGION=eu-central-1` will get changed into
-`AWS_REGION=eu-central-1`.
+```
+Example: `STAGE_myapp_dev_AWS_REGION=eu-central-1`
+will get changed into`AWS_REGION=eu-central-1`.
+```
 
 
 # Manual deploy
 
-./deploy --stage myapp-dev --version myapp-dev-0.0.1
+STAGE=myapp-dev VERSION=myapp-dev-0.0.1 ./deploy
