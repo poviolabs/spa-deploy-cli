@@ -4,10 +4,6 @@
  * To add a env variable to production, add it as prefixed with
  *  `STAGE_[stage]_` to the build env.
  *
- * Is is generally not recommended to change this script,
- *  if there are issues or missing features, consort the
- *  maintainer at https://github.com/poviolabs/terraform-template
- *
  * @version 1.2
  */
 
