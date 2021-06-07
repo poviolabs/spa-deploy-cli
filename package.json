@@ -1,5 +1,5 @@
 {
-  "name": "povio-spa-deploy",
+  "name": "@poviolabs/spa-deploy-cli",
   "scripts": {
     "build": "ncc build src/deploy.ts -o bin",
     "lint": "exlint --fix"
@@ -12,10 +12,10 @@
     "s3",
     "cloudfront"
   ],
-  "homepage": "https://github.com/poviolabs/povio-spa-deploy",
-  "bugs": "https://github.com/poviolabs/povio-spa-deploy/issues",
+  "homepage": "https://github.com/poviolabs/spa-deploy-cli",
+  "bugs": "https://github.com/poviolabs/spa-deploy-cli/issues",
   "repository": {
-    "url": "https://github.com/poviolabs/povio-spa-deploy",
+    "url": "https://github.com/poviolabs/spa-deploy-cli",
     "type": "git"
   },
   "contributors": [

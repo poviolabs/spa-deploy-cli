@@ -3,7 +3,7 @@
 Install this package
 
 ```
-yarn add https://github.com/poviolabs/povio-spa-deploy
+yarn add https://github.com/poviolabs/spa-deploy-cli
 ```
 
 # Set up

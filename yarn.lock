@@ -86,6 +86,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@poviolabs/spa-deploy-cli@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@poviolabs/spa-deploy-cli@workspace:."
+  dependencies:
+    "@types/eslint": ^7
+    "@types/eslint-plugin-prettier": ^3
+    "@types/node": ^15.6.1
+    "@types/prettier": ^2
+    "@typescript-eslint/eslint-plugin": ^4.25.0
+    "@typescript-eslint/parser": ^4.25.0
+    "@vercel/ncc": ^0.28.6
+    aws-sdk: ^2.918.0
+    dotenv: ^10.0.0
+    eslint: ^7.27.0
+    eslint-config-prettier: ^8.3.0
+    eslint-plugin-import-helpers: ^1.1.0
+    eslint-plugin-prettier: ^3.4.0
+    fast-glob: ^3.2.5
+    isomorphic-git: ^1.8.2
+    mime-types: ^2.1.30
+    prettier: ^2.3.0
+    prompt-sync: ^4.2.0
+    typescript: 4.2.4
+  bin:
+    spa-deploy-cli: bin/index.js
+  languageName: unknown
+  linkType: soft
+
 "@tootallnate/once@npm:1":
   version: 1.1.2
   resolution: "@tootallnate/once@npm:1.1.2"
@@ -1814,34 +1842,6 @@ __metadata:
   checksum: 786486a8c94a7e1980ea56c59dcc05ebf0793740b71df9b9f273e48032e6301c5ecc5cc237c5a9ff45b13db27678b4d71aa37a2777bc11473c1310718b648e98
   languageName: node
   linkType: hard
-
-"povio-spa-deploy@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "povio-spa-deploy@workspace:."
-  dependencies:
-    "@types/eslint": ^7
-    "@types/eslint-plugin-prettier": ^3
-    "@types/node": ^15.6.1
-    "@types/prettier": ^2
-    "@typescript-eslint/eslint-plugin": ^4.25.0
-    "@typescript-eslint/parser": ^4.25.0
-    "@vercel/ncc": ^0.28.6
-    aws-sdk: ^2.918.0
-    dotenv: ^10.0.0
-    eslint: ^7.27.0
-    eslint-config-prettier: ^8.3.0
-    eslint-plugin-import-helpers: ^1.1.0
-    eslint-plugin-prettier: ^3.4.0
-    fast-glob: ^3.2.5
-    isomorphic-git: ^1.8.2
-    mime-types: ^2.1.30
-    prettier: ^2.3.0
-    prompt-sync: ^4.2.0
-    typescript: 4.2.4
-  bin:
-    povio-spa-deploy: bin/index.js
-  languageName: unknown
-  linkType: soft
 
 "prelude-ls@npm:^1.2.1":
   version: 1.2.1
