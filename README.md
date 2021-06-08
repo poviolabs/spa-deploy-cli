@@ -1,3 +1,17 @@
+# SPA Deploy CLI
+
+Use this tool to deploy a SPA to AWS with CI or manually.
+
+Features:
+ - Targeted CloudFront invalidation
+ - Environment and AWS credentials storage conventions
+ - CircleCI and Bitbucket Pipelines examples
+ - Embedded Version and Release ( eg: for Sentry )
+ - Build uplifting ( dev -> stg -> prd )
+
+Examples:
+ - [React with CRA/Craco](./examples/react-craco)
+
 # Install
 
 Install this package
