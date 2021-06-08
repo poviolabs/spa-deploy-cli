@@ -1,0 +1,32 @@
+image: node:14.17.0
+
+definitions:
+  caches:
+    deploy: deploy/node_modules
+  steps:
+    - build: &make-build
+        name: Build
+        caches:
+          - node
+          - deploy
+        artifacts:
+          - build
+        script:
+          - yarn install --immutable --cache-folder ~/.cache/yarn
+          - yarn build
+
+pipelines:
+  tags:
+
+    'myapp-dev-*':
+      - step: *make-build
+      - step:
+          caches:
+            - deploy
+          variables:
+            STAGE: myapp-dev
+            # add variables to .env.${STAGE}
+            # add secrets to circleci environment
+            # secrets can be prefixed with STAGE_${STAGE}_
+          script:
+            - yarn spa-deploy-cli

@@ -57,4 +57,6 @@ will get changed into`AWS_REGION=eu-central-1`.
 
 # Manual deploy
 
-STAGE=myapp-dev VERSION=myapp-dev-0.0.1 ./deploy
+```
+STAGE=myapp-dev VERSION=myapp-dev-0.0.1 yarn spa-deploy-cli
+```
