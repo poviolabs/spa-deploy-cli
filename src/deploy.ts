@@ -113,7 +113,7 @@ const cwd = process.cwd();
         }
       } catch (e) {
         console.log(`WARNING\t ${e.toString()}`);
-        RELEASE = 'undefined';
+        RELEASE = "undefined";
       }
     }
   }
@@ -126,7 +126,7 @@ const cwd = process.cwd();
     } else if (process.env.BITBUCKET_TAG) {
       VERSION = process.env.BITBUCKET_TAG;
     } else {
-      VERSION = RELEASE
+      VERSION = RELEASE;
       // todo, get tag from git
     }
   }
@@ -151,20 +151,18 @@ const cwd = process.cwd();
   for (const fileName of deployEnv.INDEX_FILES.split(",")) {
     const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
 
-    const fileContents = fs
-      .readFileSync(filePath, "utf8");
+    const fileContents = fs.readFileSync(filePath, "utf8");
 
-    if (!fileContents.includes("<script id=\"env-data\">")) {
+    if (!fileContents.includes('<script id="env-data">')) {
       console.log(`WARNING\t ${fileName} does not contain env-data`);
     } else {
       console.log(`INFO\t Writing env-data into ${fileName}`);
       fs.writeFileSync(
         filePath,
-        fileContents
-          .replace(
-            /<script id="env-data">[^<]*<\/script>/,
-            `<script id="env-data">${envData}</script>`
-          ),
+        fileContents.replace(
+          /<script id="env-data">[^<]*<\/script>/,
+          `<script id="env-data">${envData}</script>`
+        ),
         "utf8"
       );
     }
@@ -229,7 +227,9 @@ const cwd = process.cwd();
           ContentType: lookup(filePath) || "application/octet-stream",
         })
         .promise();
-      console.info(`INFO\t Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`);
+      console.info(
+        `INFO\t Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
+      );
     })
   );
 
@@ -251,7 +251,9 @@ const cwd = process.cwd();
             ContentType: lookup(filePath) || "application/octet-stream",
           })
           .promise();
-        console.info(`INFO\t Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`);
+        console.info(
+          `INFO\t Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
+        );
       }
     })
   );
