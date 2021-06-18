@@ -2,6 +2,7 @@
 
 yarn ncc build src/deploy.ts -o bin
 
-SHEBANG='#!/usr/bin/env node\n'
-echo "${SHEBANG}$(cat ./bin/index.js)" > ./bin/index.js
-
+echo '#!/usr/bin/env node\n' > ./bin/spa-deploy-cli
+cat ./bin/index.js >> ./bin/spa-deploy-cli
+chmod +x ./bin/spa-deploy-cli
+rm ./bin/index.js

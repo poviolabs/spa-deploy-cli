@@ -21,7 +21,7 @@
   "contributors": [
     "Marko Zabreznik <marko.zabreznik@poviolabs.com>"
   ],
-  "bin": "bin/index.js",
+  "bin": "bin/spa-deploy-cli",
   "devDependencies": {
     "@types/eslint": "^7",
     "@types/eslint-plugin-prettier": "^3",
