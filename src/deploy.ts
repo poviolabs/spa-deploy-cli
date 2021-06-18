@@ -131,6 +131,7 @@ const cwd = process.cwd();
     }
   }
 
+  prodEnv["APP_STAGE"] = stage;
   prodEnv["APP_VERSION"] = VERSION;
   prodEnv["APP_RELEASE"] = RELEASE;
 
