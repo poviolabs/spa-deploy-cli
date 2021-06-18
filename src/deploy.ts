@@ -169,7 +169,9 @@ const cwd = process.cwd();
     }
   }
 
-  if (!process.env.CI || !process.env.FORCE_DEPLOY) {
+  if (process.env.CI || process.env.FORCE_DEPLOY) {
+    console.log("INFO\tDeploying...");
+  } else {
     const prompt = Prompt({ sigint: true });
     const yes = prompt('\nEnter "yes" to deploy: ');
     if (yes !== "yes") {
