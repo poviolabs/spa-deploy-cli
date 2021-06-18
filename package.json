@@ -1,7 +1,6 @@
 {
   "name": "@poviolabs/spa-deploy-cli",
   "scripts": {
-    "build": "ncc build src/deploy.ts -o bin",
     "lint": "exlint --fix"
   },
   "version": "0.1.2",
@@ -22,7 +21,7 @@
   "contributors": [
     "Marko Zabreznik <marko.zabreznik@poviolabs.com>"
   ],
-  "bin": "node bin/index.js",
+  "bin": "bin/index.js",
   "devDependencies": {
     "@types/eslint": "^7",
     "@types/eslint-plugin-prettier": "^3",
