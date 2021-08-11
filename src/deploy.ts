@@ -195,16 +195,18 @@ const cwd = process.cwd();
    */
   const importantFiles: string[] = [];
 
-  for (const maybeGlob of deployEnv.INVALIDATE_FILES.split(",")) {
-    if (maybeGlob.includes("*")) {
-      fgSync(maybeGlob, {
-        ignore: importantFiles, // do not duplicate
-        cwd: deployEnv.BUILD_PATH,
-      }).forEach((x) => {
-        importantFiles.push(x);
-      });
-    } else {
-      importantFiles.push(maybeGlob);
+  if (deployEnv.INVALIDATE_FILES) {
+    for (const maybeGlob of deployEnv.INVALIDATE_FILES.split(",")) {
+      if (maybeGlob.includes("*")) {
+        fgSync(maybeGlob, {
+          ignore: importantFiles, // do not duplicate
+          cwd: deployEnv.BUILD_PATH,
+        }).forEach((x) => {
+          importantFiles.push(x);
+        });
+      } else {
+        importantFiles.push(maybeGlob);
+      }
     }
   }
 
@@ -289,19 +291,21 @@ const cwd = process.cwd();
       }
     }
 
+    const items = [
+      ...importantFiles.map((x) => `/${x}`),
+      ...(deployEnv.INVALIDATE_PATHS
+        ? deployEnv.INVALIDATE_PATHS.split(",")
+        : []),
+    ];
+
     const response = await cf
       .createInvalidation({
         DistributionId: deployEnv.DISTRIBUTION_ID || "",
         InvalidationBatch: {
           CallerReference: new Date().toISOString(),
           Paths: {
-            Quantity: importantFiles.length,
-            Items: [
-              ...importantFiles.map((x) => `/${x}`),
-              ...(deployEnv.INVALIDATE_PATHS
-                ? deployEnv.INVALIDATE_PATHS.split(",")
-                : []),
-            ],
+            Quantity: items.length,
+            Items: items,
           },
         },
       })
