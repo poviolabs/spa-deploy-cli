@@ -48,8 +48,10 @@ You can set these in .env.[stage][.secrets] or just in the CI
 DEPLOY_BUCKET=
 AWS_REGION=us-east-1
 DISTRIBUTION_ID= # optional, will invalidate CF cache
-INDEX_FILES=index.html # optional, comma separated file names
+INDEX_FILES=index.html # optional, comma separated file names or "false"
 BUILD_PATH=./build # optional, defaults to `${__dirname}/build`
+#INVALIDATE_FILES= # comma separated files to exclude from cache and invalidate in addition to INDEX_FILES, defaults to common react files
+#INVALIDATE_PATHS= # comma separated paths to invalidate
 ```
 
 .env.stage.secrets

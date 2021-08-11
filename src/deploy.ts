@@ -44,7 +44,12 @@ const cwd = process.cwd();
     DISTRIBUTION_ID: false, // not required
 
     BUILD_PATH: path.resolve("build"),
-    INDEX_FILES: "index.html",
+    INDEX_FILES: "index.html", // "false" to disable
+    // files to invalidate, defaults to common React files
+    INVALIDATE_FILES:
+      "asset-manifest.json,favicon.ico,manifest.json,robots.txt,service-worker.js",
+    // extra paths to invalidate, they do not need to exist
+    INVALIDATE_PATHS: false,
   };
 
   const origEnv = parseDotEnv(
@@ -72,7 +77,7 @@ const cwd = process.cwd();
 
   for (const [key, value] of Object.entries(deployEnv)) {
     if (value === undefined) {
-      console.error(`FATAL\t Enviorment variable ${key} is required`);
+      console.error(`FATAL\t Environment variable ${key} is required`);
       process.exit(1);
     }
   }
@@ -149,23 +154,25 @@ const cwd = process.cwd();
       .join("\n")
   );
 
-  for (const fileName of deployEnv.INDEX_FILES.split(",")) {
-    const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
+  if (deployEnv.INDEX_FILES !== "false" && deployEnv.INDEX_FILES !== "") {
+    for (const fileName of deployEnv.INDEX_FILES.split(",")) {
+      const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
 
-    const fileContents = fs.readFileSync(filePath, "utf8");
+      const fileContents = fs.readFileSync(filePath, "utf8");
 
-    if (!fileContents.includes('<script id="env-data">')) {
-      console.log(`WARNING\t ${fileName} does not contain env-data`);
-    } else {
-      console.log(`INFO\t Writing env-data into ${fileName}`);
-      fs.writeFileSync(
-        filePath,
-        fileContents.replace(
-          /<script id="env-data">[^<]*<\/script>/,
-          `<script id="env-data">${envData}</script>`
-        ),
-        "utf8"
-      );
+      if (!fileContents.includes('<script id="env-data">')) {
+        console.log(`WARNING\t ${fileName} does not contain env-data`);
+      } else {
+        console.log(`INFO\t Writing env-data into ${fileName}`);
+        fs.writeFileSync(
+          filePath,
+          fileContents.replace(
+            /<script id="env-data">[^<]*<\/script>/,
+            `<script id="env-data">${envData}</script>`
+          ),
+          "utf8"
+        );
+      }
     }
   }
 
@@ -186,14 +193,24 @@ const cwd = process.cwd();
    *  set their CACHE_CONTROL and if all went well, deploy these files
    *  last, then invalidate the cloudfront cache.
    */
-  const importantFiles: string[] = [
-    "asset-manifest.json",
-    "favicon.ico",
-    "manifest.json",
-    "robots.txt",
-    "service-worker.js",
-    ...deployEnv.INDEX_FILES.split(","),
-  ];
+  const importantFiles: string[] = [];
+
+  for (const maybeGlob of deployEnv.INVALIDATE_FILES.split(",")) {
+    if (maybeGlob.includes("*")) {
+      fgSync(maybeGlob, {
+        ignore: importantFiles, // do not duplicate
+        cwd: deployEnv.BUILD_PATH,
+      }).forEach((x) => {
+        importantFiles.push(x);
+      });
+    } else {
+      importantFiles.push(maybeGlob);
+    }
+  }
+
+  if (deployEnv.INDEX_FILES !== "false" && deployEnv.INDEX_FILES !== "") {
+    deployEnv.INDEX_FILES.split(",").forEach((x) => importantFiles.push(x));
+  }
 
   const cachedFiles = fgSync(`**`, {
     ignore: importantFiles,
@@ -231,7 +248,7 @@ const cwd = process.cwd();
         })
         .promise();
       console.info(
-        `INFO\t Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
+        `INFO\t Uploaded [C] s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
       );
     })
   );
@@ -255,7 +272,7 @@ const cwd = process.cwd();
           })
           .promise();
         console.info(
-          `INFO\t Uploaded s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
+          `INFO\t Uploaded [I] s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
         );
       }
     })
@@ -265,6 +282,13 @@ const cwd = process.cwd();
     /**
      * Invalidate cache for importantFiles
      */
+
+    if (deployEnv.INVALIDATE_PATHS) {
+      for (const line of deployEnv.INVALIDATE_PATHS.split(",")) {
+        console.info(`INFO\t Invalidating /${line}`);
+      }
+    }
+
     const response = await cf
       .createInvalidation({
         DistributionId: deployEnv.DISTRIBUTION_ID || "",
@@ -272,7 +296,12 @@ const cwd = process.cwd();
           CallerReference: new Date().toISOString(),
           Paths: {
             Quantity: importantFiles.length,
-            Items: importantFiles.map((x) => `/${x}`),
+            Items: [
+              ...importantFiles.map((x) => `/${x}`),
+              ...(deployEnv.INVALIDATE_PATHS
+                ? deployEnv.INVALIDATE_PATHS.split(",")
+                : []),
+            ],
           },
         },
       })
