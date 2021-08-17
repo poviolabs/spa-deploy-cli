@@ -34,31 +34,22 @@ jobs:
           name: Deploy to S3
           command: yarn spa-deploy-cli
 
-  goodcontent-dev:
+  myapp-dev:
     <<: *build-and-deploy
     environment:
-      STAGE: goodcontent-dev
-
-  goodcontent-stg:
-    <<: *build-and-deploy
-    environment:
-      STAGE: goodcontent-dev
+      STAGE: myapp-dev
+      # add variables to .env.${STAGE}
+      # add secrets to circleci environment
+      # secrets can be prefixed with STAGE_${STAGE}_
 
 workflows:
   version: 2
   build-and-deploy:
     jobs:
 
-      - goodcontent-dev:
+      - myapp-dev:
           filters:
             tags:
               ignore: /.*/
             branches:
-              only: goodcontent-dev
-
-      - goodcontent-stg:
-          filters:
-            tags:
-              ignore: /.*/
-            branches:
-              only: goodcontent-stg
+              only: myapp-dev
