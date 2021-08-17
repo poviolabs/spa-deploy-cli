@@ -10,21 +10,19 @@ jobs:
       - image: circleci/node:14.15
     steps:
       - checkout
+
+      # Install packages
       - restore_cache:
-          name: Restore Yarn Package Cache
           keys:
-            - yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
-            - yarn-packages-v1-{{ .Branch }}-
-            - yarn-packages-v1-
-      - run:
-          name: Install Dependencies
-          command: yarn install --immutable --cache-folder ~/.cache/yarn
-
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run: yarn install --immutable
       - save_cache:
+          key: yarn-packages-{{ checksum "yarn.lock" }}
           paths:
-            - ~/.cache/yarn
-          key: yarn-packages-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - .yarn/cache
+            - .yarn/unplugged
 
+      # Run tests/eslint
       # - run: npm run task:eslint
 
       - run: npm run build
@@ -36,22 +34,31 @@ jobs:
           name: Deploy to S3
           command: yarn spa-deploy-cli
 
-  myapp-dev:
+  goodcontent-dev:
     <<: *build-and-deploy
     environment:
-      STAGE: myapp-dev
-      # add variables to .env.${STAGE}
-      # add secrets to circleci environment
-      # secrets can be prefixed with STAGE_${STAGE}_
+      STAGE: goodcontent-dev
+
+  goodcontent-stg:
+    <<: *build-and-deploy
+    environment:
+      STAGE: goodcontent-dev
 
 workflows:
   version: 2
   build-and-deploy:
     jobs:
 
-      - myapp-dev:
+      - goodcontent-dev:
           filters:
             tags:
               ignore: /.*/
             branches:
-              only: myapp-dev
+              only: goodcontent-dev
+
+      - goodcontent-stg:
+          filters:
+            tags:
+              ignore: /.*/
+            branches:
+              only: goodcontent-stg

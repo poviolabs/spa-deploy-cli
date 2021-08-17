@@ -287,7 +287,7 @@ const cwd = process.cwd();
 
     if (deployEnv.INVALIDATE_PATHS) {
       for (const line of deployEnv.INVALIDATE_PATHS.split(",")) {
-        console.info(`INFO\t Invalidating /${line}`);
+        console.info(`INFO\t Invalidating ${line}`);
       }
     }
 
