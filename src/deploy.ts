@@ -164,7 +164,7 @@ const cwd = process.cwd();
       .join("\n")
   );
 
-  if (deployEnv.INDEX_FILES !== "false" && deployEnv.INDEX_FILES !== "") {
+  if (deployEnv.INDEX_FILES !== false && deployEnv.INDEX_FILES !== "") {
     for (const fileName of deployEnv.INDEX_FILES.split(",")) {
       const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
 
@@ -222,7 +222,7 @@ const cwd = process.cwd();
     }
   }
 
-  if (deployEnv.INDEX_FILES !== "false" && deployEnv.INDEX_FILES !== "") {
+  if (deployEnv.INDEX_FILES !== false && deployEnv.INDEX_FILES !== "") {
     deployEnv.INDEX_FILES.split(",")
       .filter((x) => fs.existsSync(path.resolve(deployEnv.BUILD_PATH, x)))
       .forEach((x) => importantFiles.push(x));
