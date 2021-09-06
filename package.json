@@ -1,7 +1,8 @@
 {
   "name": "@poviolabs/spa-deploy-cli",
   "scripts": {
-    "lint": "exlint --fix"
+    "lint": "exlint --fix",
+    "test": "STAGE=test ts-node ./src/deploy.ts"
   },
   "version": "0.1.2",
   "keywords": [
@@ -22,7 +23,7 @@
     "Marko Zabreznik <marko.zabreznik@poviolabs.com>"
   ],
   "bin": "bin/spa-deploy-cli",
-  "devDependencies": {
+  "dependencies": {
     "@types/eslint": "^7",
     "@types/eslint-plugin-prettier": "^3",
     "@types/node": "^15.6.1",
@@ -42,5 +43,8 @@
     "prettier": "^2.3.0",
     "prompt-sync": "^4.2.0",
     "typescript": "4.2.4"
+  },
+  "devDependencies": {
+    "ts-node": "^10.2.1"
   }
 }

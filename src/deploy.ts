@@ -15,7 +15,7 @@ import { lookup } from "mime-types";
 import Prompt from "prompt-sync";
 import { resolveRef, statusMatrix } from "isomorphic-git";
 
-import { parseDotEnv } from "./helpers";
+import { parseDotEnv, fileHash } from "./helpers";
 
 const cwd = process.cwd();
 
@@ -39,6 +39,7 @@ const cwd = process.cwd();
     AWS_REGION: undefined,
     AWS_ACCESS_KEY_ID: undefined,
     AWS_SECRET_ACCESS_KEY: undefined,
+    AWS_ENDPOINT: false, // only for testing
 
     DEPLOY_BUCKET: undefined,
     DISTRIBUTION_ID: false, // not required
@@ -50,6 +51,12 @@ const cwd = process.cwd();
       "asset-manifest.json,favicon.ico,manifest.json,robots.txt,service-worker.js",
     // extra paths to invalidate, they do not need to exist
     INVALIDATE_PATHS: false,
+
+    // if old files stored on S3 should be removed
+    // this is generally to be avoided
+    PURGE: false,
+
+    VERBOSE: false,
   };
 
   const origEnv = parseDotEnv(
@@ -79,6 +86,9 @@ const cwd = process.cwd();
     if (value === undefined) {
       console.error(`FATAL\t Environment variable ${key} is required`);
       process.exit(1);
+    }
+    if (value === "false") {
+      deployEnv[key] = false;
     }
   }
 
@@ -205,13 +215,17 @@ const cwd = process.cwd();
           importantFiles.push(x);
         });
       } else {
-        importantFiles.push(maybeGlob);
+        if (fs.existsSync(path.resolve(deployEnv.BUILD_PATH, maybeGlob))) {
+          importantFiles.push(maybeGlob);
+        }
       }
     }
   }
 
   if (deployEnv.INDEX_FILES !== "false" && deployEnv.INDEX_FILES !== "") {
-    deployEnv.INDEX_FILES.split(",").forEach((x) => importantFiles.push(x));
+    deployEnv.INDEX_FILES.split(",")
+      .filter((x) => fs.existsSync(path.resolve(deployEnv.BUILD_PATH, x)))
+      .forEach((x) => importantFiles.push(x));
   }
 
   const cachedFiles = fgSync(`**`, {
@@ -228,9 +242,45 @@ const cwd = process.cwd();
       secretAccessKey: deployEnv.AWS_SECRET_ACCESS_KEY || "",
     },
     region: deployEnv.AWS_REGION || "",
+    endpoint: deployEnv.AWS_ENDPOINT ? deployEnv.AWS_ENDPOINT : undefined,
+    s3ForcePathStyle: deployEnv.AWS_ENDPOINT ? true : undefined,
+    signatureVersion: deployEnv.AWS_ENDPOINT ? "v3" : undefined,
   };
   const s3 = new S3({ ...awsOptions, apiVersion: "2006-03-01" });
   const cf = new CloudFront(awsOptions);
+
+  /**
+   * Make a list of existing files
+   *  - todo only works up to 1000
+   */
+  const filesMeta: Record<string, { remote?: string; local?: string }> = {};
+
+  if (deployEnv.PURGE) {
+    // fetch remote files to purge
+    (
+      await s3.listObjects({ Bucket: deployEnv.DEPLOY_BUCKET }).promise()
+    ).Contents.forEach(({ ETag, Key }) => {
+      filesMeta[Key] = { remote: ETag };
+      if (deployEnv.VERBOSE) {
+        printStatus("DEBUG", "FOUND", "", ETag, Key);
+      }
+    });
+  }
+
+  function printStatus(
+    a: string,
+    b: string,
+    c: string,
+    d: string,
+    fileName: string
+  ) {
+    console.info(
+      `${a.padEnd(8, " ")} ${b.padEnd(10, " ")} ${c.padEnd(10, " ")} ${d.padEnd(
+        32,
+        " "
+      )} s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
+    );
+  }
 
   /**
    * Sync cachedFiles files to s3
@@ -238,6 +288,21 @@ const cwd = process.cwd();
   await Promise.all(
     cachedFiles.map(async (fileName) => {
       const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
+      const fileMeta = (filesMeta[fileName] = {
+        remote: filesMeta[fileName]?.remote,
+        local: await fileHash(filePath),
+      });
+      if (fileMeta.remote) {
+        if (fileMeta.remote === fileMeta.local) {
+          printStatus("INFO", "SKIP", "CACHED", fileMeta.local, fileName);
+          return Promise.resolve();
+        } else {
+          // this is a warning since this file is cached
+          printStatus("WARNING", "REPLACE", "CACHED", fileMeta.local, fileName);
+        }
+      } else {
+        printStatus("INFO", "UPLOAD", "CACHED", fileMeta.local, fileName);
+      }
       await s3
         .putObject({
           Bucket: deployEnv.DEPLOY_BUCKET,
@@ -245,13 +310,10 @@ const cwd = process.cwd();
           Body: fs.readFileSync(filePath),
           ACL: "public-read",
           ContentDisposition: "inline",
-          CacheControl: "max-age=2628000", // makes the browser cache this file
+          CacheControl: "max-age=2628000, public", // makes the browser cache this file
           ContentType: lookup(filePath) || "application/octet-stream",
         })
         .promise();
-      console.info(
-        `INFO\t Uploaded [C] s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
-      );
     })
   );
 
@@ -261,35 +323,57 @@ const cwd = process.cwd();
   await Promise.all(
     importantFiles.map(async (fileName) => {
       const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
-      if (fs.existsSync(filePath)) {
-        await s3
-          .putObject({
-            Bucket: deployEnv.DEPLOY_BUCKET,
-            Key: fileName,
-            Body: fs.readFileSync(filePath),
-            ACL: "public-read",
-            ContentDisposition: "inline",
-            // CacheControl: '',  by default, the browser will re-fetch and CF will give a 403 response
-            ContentType: lookup(filePath) || "application/octet-stream",
-          })
-          .promise();
-        console.info(
-          `INFO\t Uploaded [I] s3://${deployEnv.DEPLOY_BUCKET}/${fileName}`
-        );
+      const fileMeta = (filesMeta[fileName] = {
+        remote: filesMeta[fileName]?.remote,
+        local: await fileHash(filePath),
+      });
+      if (fileMeta.remote) {
+        if (fileMeta.remote === fileMeta.local) {
+          printStatus("INFO", "SKIP", "UNCACHED", fileMeta.local, fileName);
+          return Promise.resolve();
+        } else {
+          printStatus("INFO", "REPLACE", "UNCACHED", fileMeta.local, fileName);
+        }
+      } else {
+        printStatus("INFO", "UPLOAD", "UNCACHED", fileMeta.local, fileName);
       }
+      await s3
+        .putObject({
+          Bucket: deployEnv.DEPLOY_BUCKET,
+          Key: fileName,
+          Body: fs.readFileSync(filePath),
+          ACL: "public-read",
+          ContentDisposition: "inline",
+          CacheControl: "public, must-revalidate", // force the browser and proxy to revalidate
+          ContentType: lookup(filePath) || "application/octet-stream",
+        })
+        .promise();
     })
   );
+
+  if (deployEnv.PURGE) {
+    /**
+     * Remove all files that were not found locally
+     */
+    for (const [fileName, fileMeta] of Object.entries(filesMeta).filter(
+      ([, value]) => !value.local
+    )) {
+      printStatus("INFO", "REMOVE", "", fileMeta.remote, fileName);
+      await s3
+        .deleteObject({
+          Bucket: deployEnv.DEPLOY_BUCKET,
+          Key: fileName,
+        })
+        .promise();
+    }
+  }
 
   if (deployEnv.DISTRIBUTION_ID) {
     /**
      * Invalidate cache for importantFiles
      */
 
-    if (deployEnv.INVALIDATE_PATHS) {
-      for (const line of deployEnv.INVALIDATE_PATHS.split(",")) {
-        console.info(`INFO\t Invalidating ${line}`);
-      }
-    }
+    console.info(`INFO\t DISTRIBUTION_ID: ${deployEnv.DISTRIBUTION_ID}`);
 
     const items = [
       ...importantFiles.map((x) => `/${x}`),
@@ -297,6 +381,10 @@ const cwd = process.cwd();
         ? deployEnv.INVALIDATE_PATHS.split(",")
         : []),
     ];
+
+    for (const line of items) {
+      console.info(`INFO\t Invalidating ${line}`);
+    }
 
     const response = await cf
       .createInvalidation({
@@ -315,6 +403,8 @@ const cwd = process.cwd();
         response?.Invalidation?.Status || "Unknown"
       }`
     );
+  } else {
+    console.info(`INFO\t CloudFormation Invalidation SKIPPED`);
   }
 })().catch((e) => {
   console.error(e);

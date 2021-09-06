@@ -13,3 +13,4 @@ node_modules
 # IDEs and editors
 .idea
 .DS_Store
+/test/data

@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  s3:
+    image: adobe/s3mock:2.1.36
+    ports:
+      - "9090:9090"
+    environment:
+      - initialBuckets=deploy-bucket
+      - root=/data
+    volumes:
+      - ./test/data:/data

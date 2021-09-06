@@ -6,6 +6,7 @@
 
 import * as dotenv from "dotenv";
 import * as fs from "fs";
+import { createHash } from "crypto";
 
 /**
  * Load from .env.${STAGE}
@@ -15,7 +16,7 @@ export function parseDotEnv(
   envFiles: string[],
   stage: string
 ): Record<string, string> {
-  let out: Record<string, any> = { };
+  let out: Record<string, any> = {};
   const ustage = stage.replace(/-/g, "_");
   for (const envFile of envFiles) {
     if (fs.existsSync(envFile)) {
@@ -36,4 +37,14 @@ export function parseDotEnv(
     }
   }
   return { ...out, ...process.env };
+}
+
+export async function fileHash(path: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = createHash("md5");
+    const stream = fs.createReadStream(path);
+    stream.on("error", (err) => reject(err));
+    stream.on("data", (chunk) => hash.update(chunk));
+    stream.on("end", () => resolve(hash.digest("hex")));
+  });
 }
