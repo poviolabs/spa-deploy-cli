@@ -15,7 +15,7 @@ import { lookup } from "mime-types";
 import Prompt from "prompt-sync";
 import { resolveRef, statusMatrix } from "isomorphic-git";
 
-import { parseDotEnv, fileHash } from "./helpers";
+import { fileHash, parseDotEnv } from "./helpers";
 
 const cwd = process.cwd();
 
@@ -373,8 +373,6 @@ const cwd = process.cwd();
      * Invalidate cache for importantFiles
      */
 
-    console.info(`INFO\t DISTRIBUTION_ID: ${deployEnv.DISTRIBUTION_ID}`);
-
     const items = [
       ...importantFiles.map((x) => `/${x}`),
       ...(deployEnv.INVALIDATE_PATHS
@@ -386,23 +384,36 @@ const cwd = process.cwd();
       console.info(`INFO\t Invalidating ${line}`);
     }
 
-    const response = await cf
-      .createInvalidation({
-        DistributionId: deployEnv.DISTRIBUTION_ID || "",
-        InvalidationBatch: {
-          CallerReference: new Date().toISOString(),
-          Paths: {
-            Quantity: items.length,
-            Items: items,
-          },
-        },
-      })
-      .promise();
-    console.info(
-      `INFO\t CloudFormation Invalidation: ${
-        response?.Invalidation?.Status || "Unknown"
-      }`
-    );
+    const distributions = deployEnv.DISTRIBUTION_ID.split(",");
+    let isOk = true;
+    for (const DistributionId of distributions) {
+      try {
+        const response = await cf
+          .createInvalidation({
+            DistributionId,
+            InvalidationBatch: {
+              CallerReference: new Date().toISOString(),
+              Paths: {
+                Quantity: items.length,
+                Items: items,
+              },
+            },
+          })
+          .promise();
+        console.info(
+          `INFO\t CloudFormation Invalidation ${DistributionId}: ${
+            response?.Invalidation?.Status || "Unknown"
+          }`
+        );
+      } catch (e) {
+        console.info(`ERROR\t CloudFormation Invalidation ${DistributionId}`);
+        console.error(e);
+        isOk = false;
+      }
+    }
+    if (!isOk) {
+      throw new Error("Error invalidating CloudFront Distributions");
+    }
   } else {
     console.info(`INFO\t CloudFormation Invalidation SKIPPED`);
   }
