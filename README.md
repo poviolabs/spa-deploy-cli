@@ -28,7 +28,7 @@ at build time.
 
 ```html
 <script id="env-data">
-    // you can add local testing variables here, 
+    // you can add local testing variables here,
     // this will get overwritten at build
     window.APP_THING = "value";
 </script>
@@ -47,16 +47,20 @@ You can set these in .env.[stage][.secrets] or just in the CI
 ```dotenv
 DEPLOY_BUCKET=
 AWS_REGION=us-east-1
-DISTRIBUTION_ID= # optional, will invalidate CF cache
+DISTRIBUTION_ID= # optional, will invalidate CF cache, comma separated
 INDEX_FILES=index.html # optional, comma separated file names or "false"
 BUILD_PATH=./build # optional, defaults to `${__dirname}/build`
 #INVALIDATE_FILES= # comma separated files to exclude from cache and invalidate in addition to INDEX_FILES, defaults to common react files
 #INVALIDATE_PATHS= # comma separated paths to invalidate
+#DEPLOY_PATH= # prefix directory on s3
+#PURGE=true # remove old files
+#IGNORE_PATHS # ignore these paths while purging
+#DEPLOY_PATH=admin/ # Prefix for S3 deployment
 ```
 
 .env.stage.secrets
 ```dotenv
-AWS_ACCESS_KEY_ID= 
+AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 ```
 

@@ -45,6 +45,7 @@ const cwd = process.cwd();
     DISTRIBUTION_ID: false, // not required
 
     BUILD_PATH: path.resolve("build"),
+    DEPLOY_PATH: false,
     INDEX_FILES: "index.html", // "false" to disable
     // files to invalidate, defaults to common React files
     INVALIDATE_FILES:
@@ -55,6 +56,8 @@ const cwd = process.cwd();
     // if old files stored on S3 should be removed
     // this is generally to be avoided
     PURGE: false,
+    // ignore these prefixes while purging
+    IGNORE_PATHS: false,
 
     VERBOSE: false,
   };
@@ -95,6 +98,9 @@ const cwd = process.cwd();
   console.info(`INFO\t AWS_REGION: ${deployEnv.AWS_REGION}`);
   console.info(`INFO\t DEPLOY_BUCKET: ${deployEnv.DEPLOY_BUCKET}`);
   console.info(`INFO\t BUILD_PATH: ${deployEnv.BUILD_PATH}`);
+  if (deployEnv.DEPLOY_PATH) {
+    console.info(`INFO\t DEPLOY_PATH: ${deployEnv.DEPLOY_PATH}`);
+  }
 
   /**
    * Patch index.html with release/version
@@ -256,10 +262,22 @@ const cwd = process.cwd();
   const filesMeta: Record<string, { remote?: string; local?: string }> = {};
 
   if (deployEnv.PURGE) {
+    const ignoredPaths = (deployEnv.IGNORE_PATHS || "")?.split(",") || [];
     // fetch remote files to purge
     (
-      await s3.listObjects({ Bucket: deployEnv.DEPLOY_BUCKET }).promise()
+      await s3
+        .listObjects({
+          Bucket: deployEnv.DEPLOY_BUCKET,
+          Prefix: deployEnv.DEPLOY_PATH || undefined,
+        })
+        .promise()
     ).Contents.forEach(({ ETag, Key }) => {
+      if (
+        deployEnv.IGNORE_PATHS &&
+        ignoredPaths.some((x) => Key.startsWith(x))
+      ) {
+        return;
+      }
       filesMeta[Key] = { remote: ETag };
       if (deployEnv.VERBOSE) {
         printStatus("DEBUG", "FOUND", "", ETag, Key);
@@ -287,26 +305,33 @@ const cwd = process.cwd();
    */
   await Promise.all(
     cachedFiles.map(async (fileName) => {
+      const remoteFileName = `${deployEnv.DEPLOY_PATH || ""}${fileName}`;
       const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
-      const fileMeta = (filesMeta[fileName] = {
-        remote: filesMeta[fileName]?.remote,
+      const fileMeta = (filesMeta[remoteFileName] = {
+        remote: filesMeta[remoteFileName]?.remote,
         local: await fileHash(filePath),
       });
       if (fileMeta.remote) {
         if (fileMeta.remote === fileMeta.local) {
-          printStatus("INFO", "SKIP", "CACHED", fileMeta.local, fileName);
+          printStatus("INFO", "SKIP", "CACHED", fileMeta.local, remoteFileName);
           return Promise.resolve();
         } else {
           // this is a warning since this file is cached
-          printStatus("WARNING", "REPLACE", "CACHED", fileMeta.local, fileName);
+          printStatus(
+            "WARNING",
+            "REPLACE",
+            "CACHED",
+            fileMeta.local,
+            remoteFileName
+          );
         }
       } else {
-        printStatus("INFO", "UPLOAD", "CACHED", fileMeta.local, fileName);
+        printStatus("INFO", "UPLOAD", "CACHED", fileMeta.local, remoteFileName);
       }
       await s3
         .putObject({
           Bucket: deployEnv.DEPLOY_BUCKET,
-          Key: fileName,
+          Key: remoteFileName,
           Body: fs.readFileSync(filePath),
           ACL: "public-read",
           ContentDisposition: "inline",
@@ -322,25 +347,44 @@ const cwd = process.cwd();
    */
   await Promise.all(
     importantFiles.map(async (fileName) => {
+      const remoteFileName = `${deployEnv.DEPLOY_PATH || ""}${fileName}`;
       const filePath = path.resolve(deployEnv.BUILD_PATH, fileName);
-      const fileMeta = (filesMeta[fileName] = {
-        remote: filesMeta[fileName]?.remote,
+      const fileMeta = (filesMeta[remoteFileName] = {
+        remote: filesMeta[remoteFileName]?.remote,
         local: await fileHash(filePath),
       });
       if (fileMeta.remote) {
         if (fileMeta.remote === fileMeta.local) {
-          printStatus("INFO", "SKIP", "UNCACHED", fileMeta.local, fileName);
+          printStatus(
+            "INFO",
+            "SKIP",
+            "UNCACHED",
+            fileMeta.local,
+            remoteFileName
+          );
           return Promise.resolve();
         } else {
-          printStatus("INFO", "REPLACE", "UNCACHED", fileMeta.local, fileName);
+          printStatus(
+            "INFO",
+            "REPLACE",
+            "UNCACHED",
+            fileMeta.local,
+            remoteFileName
+          );
         }
       } else {
-        printStatus("INFO", "UPLOAD", "UNCACHED", fileMeta.local, fileName);
+        printStatus(
+          "INFO",
+          "UPLOAD",
+          "UNCACHED",
+          fileMeta.local,
+          remoteFileName
+        );
       }
       await s3
         .putObject({
           Bucket: deployEnv.DEPLOY_BUCKET,
-          Key: fileName,
+          Key: remoteFileName,
           Body: fs.readFileSync(filePath),
           ACL: "public-read",
           ContentDisposition: "inline",
