@@ -25,7 +25,7 @@ jobs:
       # Run tests/eslint
       # - run: npm run task:eslint
 
-      - run: npm run build
+      - run: yarn run build
 
       # RUN DEPLOY SCRIPT
       #  add version and variables to header
