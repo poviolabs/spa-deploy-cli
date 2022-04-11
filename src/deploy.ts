@@ -60,6 +60,8 @@ const cwd = process.cwd();
     IGNORE_PATHS: false,
 
     VERBOSE: false,
+
+    ACL_HEADER: false
   };
 
   const origEnv = parseDotEnv(
@@ -100,6 +102,18 @@ const cwd = process.cwd();
   console.info(`INFO\t BUILD_PATH: ${deployEnv.BUILD_PATH}`);
   if (deployEnv.DEPLOY_PATH) {
     console.info(`INFO\t DEPLOY_PATH: ${deployEnv.DEPLOY_PATH}`);
+  }
+
+  const defaultFileHeaders = {
+    ACL: "public-read",
+  };
+
+  if (deployEnv.ACL_HEADER !== false) {
+    if (deployEnv.ACL_HEADER === "none") {
+      delete defaultFileHeaders.ACL;
+    } else {
+      defaultFileHeaders.ACL = deployEnv.ACL_HEADER;
+    }
   }
 
   /**
@@ -333,10 +347,10 @@ const cwd = process.cwd();
           Bucket: deployEnv.DEPLOY_BUCKET,
           Key: remoteFileName,
           Body: fs.readFileSync(filePath),
-          ACL: "public-read",
           ContentDisposition: "inline",
           CacheControl: "max-age=2628000, public", // makes the browser cache this file
           ContentType: lookup(filePath) || "application/octet-stream",
+          ...defaultFileHeaders
         })
         .promise();
     })
@@ -386,7 +400,6 @@ const cwd = process.cwd();
           Bucket: deployEnv.DEPLOY_BUCKET,
           Key: remoteFileName,
           Body: fs.readFileSync(filePath),
-          ACL: "public-read",
           ContentDisposition: "inline",
           CacheControl: "public, must-revalidate", // force the browser and proxy to revalidate
           ContentType: lookup(filePath) || "application/octet-stream",
