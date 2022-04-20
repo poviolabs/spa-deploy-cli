@@ -1,8 +1,25 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2020",
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "./bin",
+    "module": "commonjs",
+    "baseUrl": "src",
+    "sourceRoot": "/",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "~*": [
+        "*"
+      ]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "test/**/*"],
+  "ts-node": {
+    "transpileOnly": true,
+    "transpiler": "ts-node/transpilers/swc-experimental"
+  }
 }
