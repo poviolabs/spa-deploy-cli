@@ -166,7 +166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/credential-provider-ini@npm:^3.67.0":
+"@aws-sdk/credential-provider-ini@npm:^3.72.0":
   version: 3.72.0
   resolution: "@aws-sdk/credential-provider-ini@npm:3.72.0"
   dependencies:
@@ -1348,20 +1348,20 @@ __metadata:
   resolution: "@poviolabs/spa-deploy-cli@workspace:."
   dependencies:
     "@aws-sdk/credential-provider-env": ^3.55.0
-    "@aws-sdk/credential-provider-ini": ^3.67.0
+    "@aws-sdk/credential-provider-ini": ^3.72.0
     "@aws-sdk/node-config-provider": ^3.58.0
     "@jest/types": ^27.5.1
-    "@swc/core": ^1.2.165
+    "@swc/core": ^1.2.170
     "@swc/jest": ^0.2.20
     "@types/eslint": ^8.4.1
     "@types/eslint-plugin-prettier": ^3.1.0
     "@types/jest": ^27.4.1
-    "@types/node": ^16.11.26
+    "@types/node": ^16.11.27
     "@types/prettier": ^2.6.0
     "@types/prompt-sync": ^4.1.1
     "@types/yargs": ^17.0.10
-    "@typescript-eslint/eslint-plugin": ^5.19.0
-    "@typescript-eslint/parser": ^5.19.0
+    "@typescript-eslint/eslint-plugin": ^5.20.0
+    "@typescript-eslint/parser": ^5.20.0
     "@vercel/ncc": ^0.33.4
     chalk: ^4.1.2
     dotenv: ^16.0.0
@@ -1369,19 +1369,19 @@ __metadata:
     eslint-config-prettier: ^8.5.0
     eslint-plugin-import-helpers: ^1.2.1
     eslint-plugin-prettier: ^4.0.0
-    fast-glob: ^3.2.5
+    fast-glob: ^3.2.11
     jest: ^27.5.1
-    mime-types: ^2.1.30
+    mime-types: ^2.1.35
     prettier: ^2.6.2
     prompt-sync: ^4.2.0
     reflect-metadata: ^0.1.13
-    simple-git: ^3.6.0
+    simple-git: ^3.7.0
     source-map-support: ^0.5.21
     ts-jest: ^27.1.4
     ts-node: ^10.7.0
     tsconfig-paths: ^3.14.1
     typescript: 4.6.3
-    yaml: ^2.0.0
+    yaml: ^2.0.1
     yargs: ^17.4.1
   bin:
     spa-deploy-cli: ./dist/index.js
@@ -1497,7 +1497,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:^1.2.165":
+"@swc/core@npm:^1.2.170":
   version: 1.2.170
   resolution: "@swc/core@npm:1.2.170"
   dependencies:
@@ -1742,7 +1742,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^16.11.26":
+"@types/node@npm:^16.11.27":
   version: 16.11.27
   resolution: "@types/node@npm:16.11.27"
   checksum: 6ed0c8c4d29a549d0cfd607d19edf9a4668fbd39087701d923b4a04cd760564e47ad27f9403968cb9c11ee006f0ea6ab698b2491b4b2d2dec3f4a53d0fc22df7
@@ -1795,7 +1795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:^5.19.0":
+"@typescript-eslint/eslint-plugin@npm:^5.20.0":
   version: 5.20.0
   resolution: "@typescript-eslint/eslint-plugin@npm:5.20.0"
   dependencies:
@@ -1818,7 +1818,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:^5.19.0":
+"@typescript-eslint/parser@npm:^5.20.0":
   version: 5.20.0
   resolution: "@typescript-eslint/parser@npm:5.20.0"
   dependencies:
@@ -2273,7 +2273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"braces@npm:^3.0.1, braces@npm:^3.0.2":
+"braces@npm:^3.0.2":
   version: 3.0.2
   resolution: "braces@npm:3.0.2"
   dependencies:
@@ -3073,21 +3073,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-glob@npm:^3.2.5":
-  version: 3.2.5
-  resolution: "fast-glob@npm:3.2.5"
-  dependencies:
-    "@nodelib/fs.stat": ^2.0.2
-    "@nodelib/fs.walk": ^1.2.3
-    glob-parent: ^5.1.0
-    merge2: ^1.3.0
-    micromatch: ^4.0.2
-    picomatch: ^2.2.1
-  checksum: 5d6772c9b63dbb739d60b5630851e1f2cbf9744119e0968eac44c9f8cbc2d3d5cb4f2f0c74715ccb23daa336c87bea42186ed367e6c991afee61cd3d967320eb
-  languageName: node
-  linkType: hard
-
-"fast-glob@npm:^3.2.9":
+"fast-glob@npm:^3.2.11, fast-glob@npm:^3.2.9":
   version: 3.2.11
   resolution: "fast-glob@npm:3.2.11"
   dependencies:
@@ -3281,7 +3267,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob-parent@npm:^5.1.0, glob-parent@npm:^5.1.2":
+"glob-parent@npm:^5.1.2":
   version: 5.1.2
   resolution: "glob-parent@npm:5.1.2"
   dependencies:
@@ -4476,16 +4462,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"micromatch@npm:^4.0.2":
-  version: 4.0.4
-  resolution: "micromatch@npm:4.0.4"
-  dependencies:
-    braces: ^3.0.1
-    picomatch: ^2.2.3
-  checksum: ef3d1c88e79e0a68b0e94a03137676f3324ac18a908c245a9e5936f838079fcc108ac7170a5fadc265a9c2596963462e402841406bda1a4bb7b68805601d631c
-  languageName: node
-  linkType: hard
-
 "micromatch@npm:^4.0.4":
   version: 4.0.5
   resolution: "micromatch@npm:4.0.5"
@@ -4496,13 +4472,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime-db@npm:1.47.0":
-  version: 1.47.0
-  resolution: "mime-db@npm:1.47.0"
-  checksum: 6808235243c39b3142e677af86972cf32de8ebbec81178491475a79aa07caf67646cd9b559972d22c3c372ddca4a093e58bb0ba10376d75a1efbd0e07be82de2
-  languageName: node
-  linkType: hard
-
 "mime-db@npm:1.52.0":
   version: 1.52.0
   resolution: "mime-db@npm:1.52.0"
@@ -4510,21 +4479,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime-types@npm:^2.1.12":
+"mime-types@npm:^2.1.12, mime-types@npm:^2.1.35":
   version: 2.1.35
   resolution: "mime-types@npm:2.1.35"
   dependencies:
     mime-db: 1.52.0
   checksum: 89a5b7f1def9f3af5dad6496c5ed50191ae4331cc5389d7c521c8ad28d5fdad2d06fd81baf38fed813dc4e46bb55c8145bb0ff406330818c9cf712fb2e9b3836
-  languageName: node
-  linkType: hard
-
-"mime-types@npm:^2.1.30":
-  version: 2.1.30
-  resolution: "mime-types@npm:2.1.30"
-  dependencies:
-    mime-db: 1.47.0
-  checksum: 53c36729b1c4f6029fd5957d5859e62eff4b86311a6e1dce87937583dc8971fec9f359ffcff4be93d26bb5ddd03f1b5ffc7626912031ce0a63510d7896521b2e
   languageName: node
   linkType: hard
 
@@ -4902,7 +4862,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picomatch@npm:^2.2.1, picomatch@npm:^2.2.3":
+"picomatch@npm:^2.2.3":
   version: 2.3.0
   resolution: "picomatch@npm:2.3.0"
   checksum: 16818720ea7c5872b6af110760dee856c8e4cd79aed1c7a006d076b1cc09eff3ae41ca5019966694c33fbd2e1cc6ea617ab10e4adac6df06556168f13be3fca2
@@ -5256,7 +5216,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-git@npm:^3.6.0":
+"simple-git@npm:^3.7.0":
   version: 3.7.0
   resolution: "simple-git@npm:3.7.0"
   dependencies:
@@ -6062,7 +6022,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.0.0":
+"yaml@npm:^2.0.1":
   version: 2.0.1
   resolution: "yaml@npm:2.0.1"
   checksum: 23f95ff0d646c894048ac5072b5b6d393a398af1b2553916f0de276d62dbb3279ae3c969d7fcefe7a213be4efc9b4aa3ae1439c97095d3d3765fc6bc424807ac
