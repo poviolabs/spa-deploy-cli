@@ -465,7 +465,7 @@ const cwd = process.cwd();
           }`
         );
       } catch (e) {
-        console.info(`ERROR\t CloudFormation Invalidation ${DistributionId}`);
+        console.info(`ERROR\t CloudFront Invalidation ${DistributionId}`);
         console.error(e);
         isOk = false;
       }
