@@ -61,7 +61,7 @@ const cwd = process.cwd();
 
     VERBOSE: false,
 
-    ACL_HEADER: false
+    ACL_HEADER: false,
   };
 
   const origEnv = parseDotEnv(
@@ -127,6 +127,8 @@ const cwd = process.cwd();
       RELEASE = process.env.CIRCLE_SHA1;
     } else if (process.env.BITBUCKET_COMMIT) {
       RELEASE = process.env.BITBUCKET_COMMIT;
+    } else if (process.env.GITHUB_SHA) {
+      RELEASE = process.env.GITHUB_SHA;
     } else {
       try {
         const ref = await resolveRef({ fs, dir: cwd, ref: "HEAD" });
@@ -350,7 +352,7 @@ const cwd = process.cwd();
           ContentDisposition: "inline",
           CacheControl: "max-age=2628000, public", // makes the browser cache this file
           ContentType: lookup(filePath) || "application/octet-stream",
-          ...defaultFileHeaders
+          ...defaultFileHeaders,
         })
         .promise();
     })
@@ -458,12 +460,12 @@ const cwd = process.cwd();
           })
           .promise();
         console.info(
-          `INFO\t CloudFormation Invalidation ${DistributionId}: ${
+          `INFO\t CloudFront Invalidation ${DistributionId}: ${
             response?.Invalidation?.Status || "Unknown"
           }`
         );
       } catch (e) {
-        console.info(`ERROR\t CloudFormation Invalidation ${DistributionId}`);
+        console.info(`ERROR\t CloudFront Invalidation ${DistributionId}`);
         console.error(e);
         isOk = false;
       }
@@ -472,7 +474,7 @@ const cwd = process.cwd();
       throw new Error("Error invalidating CloudFront Distributions");
     }
   } else {
-    console.info(`INFO\t CloudFormation Invalidation SKIPPED`);
+    console.info(`INFO\t CloudFront Invalidation SKIPPED`);
   }
 })().catch((e) => {
   console.error(e);
