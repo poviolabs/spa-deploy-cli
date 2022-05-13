@@ -14,3 +14,7 @@ node_modules
 .idea
 .DS_Store
 /test/data
+
+
+# config
+config.local.yaml

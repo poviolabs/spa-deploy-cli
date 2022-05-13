@@ -27,6 +27,8 @@
   ],
   "bin": "./dist/index.js",
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.88.0",
+    "@aws-sdk/client-sts": "^3.87.0",
     "@aws-sdk/credential-provider-env": "^3.55.0",
     "@aws-sdk/credential-provider-ini": "^3.72.0",
     "@aws-sdk/node-config-provider": "^3.58.0",
@@ -55,7 +57,7 @@
     "prettier": "^2.6.2",
     "prompt-sync": "^4.2.0",
     "reflect-metadata": "^0.1.13",
-    "simple-git": "^3.7.0",
+    "simple-git": "^3.6.0",
     "source-map-support": "^0.5.21",
     "ts-jest": "^27.1.4",
     "ts-node": "^10.7.0",
@@ -74,6 +76,9 @@
     "verbose": true,
     "transform": {
       "^.+\\.(t|j)sx?$": "@swc/jest"
-    }
+    },
+    "roots": [
+      "test"
+    ]
   }
 }

@@ -1,0 +1,35 @@
+stages:
+  test:
+    spa_deploy:
+
+      awsRegion: foobar
+      awsEndpoint: http://localhost:9090
+      deployBucket: deploy-bucket
+      # optional, comma separated file names or "false"
+      indexFiles: index.html
+      # optional, defaults to `${__dirname}/build`
+      buildPath: ./test/app
+      distributionId: false
+      # comma separated files to exclude from cache and invalidate in addition to INDEX_FILES, defaults to common react files
+      invalidateFiles:
+      # comma separated paths to invalidate
+      invalidatePaths:
+      purge: true
+      ignorePaths: "test"
+      deployPath: "test/"
+
+      # slackChannel: C03AXDS9F2B
+      # slackAutolinkPrefix: SP-
+      # slackAutolinkTarget: https://github.com/poviolabs/spa-deploy-cli/issues/
+      # slackCommitPrefix: https://github.com/poviolabs/spa-deploy-cli/commit/
+      # slackProjectName: ECS-Deploy
+
+    environment:
+      # this should not be committed to git!
+      AWS_ACCESS_KEY_ID: foobar
+      AWS_SECRET_ACCESS_KEY: foobar
+
+    spa_env:
+      # APP_STAGE: automatic via stage
+      # APP_VERSION: automatic via appVersion option
+      # APP_RELEASE: automatic via git
