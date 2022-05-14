@@ -53,6 +53,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "fast-glob": "^3.2.11",
     "jest": "^27.5.1",
+    "micromatch": "^4.0.5",
     "mime-types": "^2.1.35",
     "prettier": "^2.6.2",
     "prompt-sync": "^4.2.0",

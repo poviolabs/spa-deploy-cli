@@ -8,4 +8,4 @@ services:
       - initialBuckets=deploy-bucket
       - root=/data
     volumes:
-      - ./test/data:/data
+      - ./.tmp/s3:/data

@@ -1,34 +1,46 @@
 stages:
   test:
     spa_deploy:
+      verbose: true
 
-      awsRegion: foobar
-      awsEndpoint: http://localhost:9090
-      deployBucket: deploy-bucket
-      # optional, comma separated file names or "false"
-      indexFiles: index.html
-      # optional, defaults to `${__dirname}/build`
-      buildPath: ./test/app
-      distributionId: false
-      # comma separated files to exclude from cache and invalidate in addition to INDEX_FILES, defaults to common react files
-      invalidateFiles:
-      # comma separated paths to invalidate
-      invalidatePaths:
-      purge: true
-      ignorePaths: "test"
-      deployPath: "test/"
+      path: ./app
+      include_glob: "**"
+      ignore_glob:
 
-      # slackChannel: C03AXDS9F2B
-      # slackAutolinkPrefix: SP-
-      # slackAutolinkTarget: https://github.com/poviolabs/spa-deploy-cli/issues/
-      # slackCommitPrefix: https://github.com/poviolabs/spa-deploy-cli/commit/
-      # slackProjectName: ECS-Deploy
+      # target
+      s3_endpoint: http://localhost:9090
+      s3_region: foobar
+      s3_bucket: deploy-bucket
+      s3_prefix:
+      s3_acl: "public-read"
+      # remove all not found locally
+      s3_purge: false
+      # force replace all
+      s3_force: false
+      # files to not cache and invalidate by default
+      # includes spa_index
+      s3_invalidate_glob:
 
+      # invalidations
+      cloudfront_id:
+      # extra paths to invalidate
+      # invalidate_glob already handles known files
+      cloudfront_invalidate_paths:
+
+      slack:
+        channel: C03AXDS9F2B
+        autolink_prefix: SP-
+        autolink_target: https://github.com/poviolabs/spa-deploy-cli/issues/
+        commit_prefix: https://github.com/poviolabs/spa-deploy-cli/commit/
+        project_name: ECS-Deploy
+
+    # injected into process.env
     environment:
       # this should not be committed to git!
       AWS_ACCESS_KEY_ID: foobar
       AWS_SECRET_ACCESS_KEY: foobar
 
+    spa_index: index.html
     spa_env:
       # APP_STAGE: automatic via stage
       # APP_VERSION: automatic via appVersion option

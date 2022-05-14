@@ -39,12 +39,3 @@ export function parseDotEnv(
   return { ...out, ...process.env };
 }
 
-export async function fileHash(path: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const hash = createHash("md5");
-    const stream = fs.createReadStream(path);
-    stream.on("error", (err) => reject(err));
-    stream.on("data", (chunk) => hash.update(chunk));
-    stream.on("end", () => resolve(hash.digest("hex")));
-  });
-}
