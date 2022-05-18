@@ -4,6 +4,10 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import {
+  CloudFrontClient,
+  CreateInvalidationCommand,
+} from "@aws-sdk/client-cloudfront";
 import { fromIni } from "@aws-sdk/credential-provider-ini";
 import { fromEnv } from "@aws-sdk/credential-provider-env";
 import { GetCallerIdentityCommand, STSClient } from "@aws-sdk/client-sts";
@@ -17,7 +21,7 @@ import {
   SyncAction,
   SyncActionColors,
 } from "./sync.helper";
-import {chk, info} from "./cli.helper";
+import { chk, info } from "./cli.helper";
 
 function getCredentials() {
   if (process.env.AWS_PROFILE) {
@@ -44,6 +48,13 @@ export function getS3ClientInstance(options: {
     ...(options.endpoint
       ? { forcePathStyle: true, endpoint: options.endpoint }
       : {}),
+  });
+}
+
+export function getCloudfrontClientInstance(options: { region: string }) {
+  return new CloudFrontClient({
+    credentials: getCredentials(),
+    region: options.region,
   });
 }
 
@@ -304,22 +315,20 @@ export async function executeCloudfrontInvalidation(
   distributionsId: string[],
   region: string
 ) {
-  // get cf client
-  // get all file invalidation
-  // append folder invalidation
-  // do the invalidation
-  /*
-  const response = await cf
-      .createInvalidation({
+  for (const DistributionId of distributionsId) {
+    const client = getCloudfrontClientInstance({ region });
+    info(`Invalidating ${DistributionId}`);
+    await client.send(
+      new CreateInvalidationCommand({
         DistributionId,
         InvalidationBatch: {
           CallerReference: new Date().toISOString(),
           Paths: {
-            Quantity: items.length,
-            Items: items,
+            Quantity: invalidations.length,
+            Items: invalidations,
           },
         },
       })
-      .promise();
-  */
+    );
+  }
 }

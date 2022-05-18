@@ -27,6 +27,7 @@
   ],
   "bin": "./dist/index.js",
   "devDependencies": {
+    "@aws-sdk/client-cloudfront": "^3.92.0",
     "@aws-sdk/client-s3": "^3.88.0",
     "@aws-sdk/client-sts": "^3.87.0",
     "@aws-sdk/credential-provider-env": "^3.55.0",

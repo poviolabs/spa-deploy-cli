@@ -33,6 +33,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {\
           "packageLocation": "./",\
           "packageDependencies": [\
+            ["@aws-sdk/client-cloudfront", "npm:3.92.0"],\
             ["@aws-sdk/client-s3", "npm:3.88.0"],\
             ["@aws-sdk/client-sts", "npm:3.87.0"],\
             ["@aws-sdk/credential-provider-env", "npm:3.55.0"],\
@@ -238,6 +239,52 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["@aws-sdk/client-cloudfront", [\
+        ["npm:3.92.0", {\
+          "packageLocation": "./.yarn/cache/@aws-sdk-client-cloudfront-npm-3.92.0-506d9d6de0-679d34a2ad.zip/node_modules/@aws-sdk/client-cloudfront/",\
+          "packageDependencies": [\
+            ["@aws-sdk/client-cloudfront", "npm:3.92.0"],\
+            ["@aws-crypto/sha256-browser", "npm:2.0.0"],\
+            ["@aws-crypto/sha256-js", "npm:2.0.0"],\
+            ["@aws-sdk/client-sts", "npm:3.92.0"],\
+            ["@aws-sdk/config-resolver", "npm:3.80.0"],\
+            ["@aws-sdk/credential-provider-node", "npm:3.87.0"],\
+            ["@aws-sdk/fetch-http-handler", "npm:3.78.0"],\
+            ["@aws-sdk/hash-node", "npm:3.78.0"],\
+            ["@aws-sdk/invalid-dependency", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-content-length", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-host-header", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-logger", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-retry", "npm:3.80.0"],\
+            ["@aws-sdk/middleware-serde", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-signing", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-stack", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-user-agent", "npm:3.78.0"],\
+            ["@aws-sdk/node-config-provider", "npm:3.80.0"],\
+            ["@aws-sdk/node-http-handler", "npm:3.82.0"],\
+            ["@aws-sdk/protocol-http", "npm:3.78.0"],\
+            ["@aws-sdk/smithy-client", "npm:3.85.0"],\
+            ["@aws-sdk/types", "npm:3.78.0"],\
+            ["@aws-sdk/url-parser", "npm:3.78.0"],\
+            ["@aws-sdk/util-base64-browser", "npm:3.58.0"],\
+            ["@aws-sdk/util-base64-node", "npm:3.55.0"],\
+            ["@aws-sdk/util-body-length-browser", "npm:3.55.0"],\
+            ["@aws-sdk/util-body-length-node", "npm:3.55.0"],\
+            ["@aws-sdk/util-defaults-mode-browser", "npm:3.85.0"],\
+            ["@aws-sdk/util-defaults-mode-node", "npm:3.85.0"],\
+            ["@aws-sdk/util-user-agent-browser", "npm:3.78.0"],\
+            ["@aws-sdk/util-user-agent-node", "npm:3.80.0"],\
+            ["@aws-sdk/util-utf8-browser", "npm:3.55.0"],\
+            ["@aws-sdk/util-utf8-node", "npm:3.55.0"],\
+            ["@aws-sdk/util-waiter", "npm:3.78.0"],\
+            ["@aws-sdk/xml-builder", "npm:3.55.0"],\
+            ["entities", "npm:2.2.0"],\
+            ["fast-xml-parser", "npm:3.19.0"],\
+            ["tslib", "npm:2.3.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["@aws-sdk/client-s3", [\
         ["npm:3.88.0", {\
           "packageLocation": "./.yarn/cache/@aws-sdk-client-s3-npm-3.88.0-dd02f7140d-8fefeb814c.zip/node_modules/@aws-sdk/client-s3/",\
@@ -381,6 +428,48 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@aws-sdk-client-sts-npm-3.87.0-832faa9b42-2c99e657af.zip/node_modules/@aws-sdk/client-sts/",\
           "packageDependencies": [\
             ["@aws-sdk/client-sts", "npm:3.87.0"],\
+            ["@aws-crypto/sha256-browser", "npm:2.0.0"],\
+            ["@aws-crypto/sha256-js", "npm:2.0.0"],\
+            ["@aws-sdk/config-resolver", "npm:3.80.0"],\
+            ["@aws-sdk/credential-provider-node", "npm:3.87.0"],\
+            ["@aws-sdk/fetch-http-handler", "npm:3.78.0"],\
+            ["@aws-sdk/hash-node", "npm:3.78.0"],\
+            ["@aws-sdk/invalid-dependency", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-content-length", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-host-header", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-logger", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-retry", "npm:3.80.0"],\
+            ["@aws-sdk/middleware-sdk-sts", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-serde", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-signing", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-stack", "npm:3.78.0"],\
+            ["@aws-sdk/middleware-user-agent", "npm:3.78.0"],\
+            ["@aws-sdk/node-config-provider", "npm:3.80.0"],\
+            ["@aws-sdk/node-http-handler", "npm:3.82.0"],\
+            ["@aws-sdk/protocol-http", "npm:3.78.0"],\
+            ["@aws-sdk/smithy-client", "npm:3.85.0"],\
+            ["@aws-sdk/types", "npm:3.78.0"],\
+            ["@aws-sdk/url-parser", "npm:3.78.0"],\
+            ["@aws-sdk/util-base64-browser", "npm:3.58.0"],\
+            ["@aws-sdk/util-base64-node", "npm:3.55.0"],\
+            ["@aws-sdk/util-body-length-browser", "npm:3.55.0"],\
+            ["@aws-sdk/util-body-length-node", "npm:3.55.0"],\
+            ["@aws-sdk/util-defaults-mode-browser", "npm:3.85.0"],\
+            ["@aws-sdk/util-defaults-mode-node", "npm:3.85.0"],\
+            ["@aws-sdk/util-user-agent-browser", "npm:3.78.0"],\
+            ["@aws-sdk/util-user-agent-node", "npm:3.80.0"],\
+            ["@aws-sdk/util-utf8-browser", "npm:3.55.0"],\
+            ["@aws-sdk/util-utf8-node", "npm:3.55.0"],\
+            ["entities", "npm:2.2.0"],\
+            ["fast-xml-parser", "npm:3.19.0"],\
+            ["tslib", "npm:2.3.1"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:3.92.0", {\
+          "packageLocation": "./.yarn/cache/@aws-sdk-client-sts-npm-3.92.0-cbef04aee7-15e2de955a.zip/node_modules/@aws-sdk/client-sts/",\
+          "packageDependencies": [\
+            ["@aws-sdk/client-sts", "npm:3.92.0"],\
             ["@aws-crypto/sha256-browser", "npm:2.0.0"],\
             ["@aws-crypto/sha256-js", "npm:2.0.0"],\
             ["@aws-sdk/config-resolver", "npm:3.80.0"],\
@@ -2767,6 +2856,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["@poviolabs/spa-deploy-cli", "workspace:."],\
+            ["@aws-sdk/client-cloudfront", "npm:3.92.0"],\
             ["@aws-sdk/client-s3", "npm:3.88.0"],\
             ["@aws-sdk/client-sts", "npm:3.87.0"],\
             ["@aws-sdk/credential-provider-env", "npm:3.55.0"],\

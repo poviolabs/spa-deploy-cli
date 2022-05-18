@@ -156,6 +156,51 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-sdk/client-cloudfront@npm:^3.92.0":
+  version: 3.92.0
+  resolution: "@aws-sdk/client-cloudfront@npm:3.92.0"
+  dependencies:
+    "@aws-crypto/sha256-browser": 2.0.0
+    "@aws-crypto/sha256-js": 2.0.0
+    "@aws-sdk/client-sts": 3.92.0
+    "@aws-sdk/config-resolver": 3.80.0
+    "@aws-sdk/credential-provider-node": 3.87.0
+    "@aws-sdk/fetch-http-handler": 3.78.0
+    "@aws-sdk/hash-node": 3.78.0
+    "@aws-sdk/invalid-dependency": 3.78.0
+    "@aws-sdk/middleware-content-length": 3.78.0
+    "@aws-sdk/middleware-host-header": 3.78.0
+    "@aws-sdk/middleware-logger": 3.78.0
+    "@aws-sdk/middleware-retry": 3.80.0
+    "@aws-sdk/middleware-serde": 3.78.0
+    "@aws-sdk/middleware-signing": 3.78.0
+    "@aws-sdk/middleware-stack": 3.78.0
+    "@aws-sdk/middleware-user-agent": 3.78.0
+    "@aws-sdk/node-config-provider": 3.80.0
+    "@aws-sdk/node-http-handler": 3.82.0
+    "@aws-sdk/protocol-http": 3.78.0
+    "@aws-sdk/smithy-client": 3.85.0
+    "@aws-sdk/types": 3.78.0
+    "@aws-sdk/url-parser": 3.78.0
+    "@aws-sdk/util-base64-browser": 3.58.0
+    "@aws-sdk/util-base64-node": 3.55.0
+    "@aws-sdk/util-body-length-browser": 3.55.0
+    "@aws-sdk/util-body-length-node": 3.55.0
+    "@aws-sdk/util-defaults-mode-browser": 3.85.0
+    "@aws-sdk/util-defaults-mode-node": 3.85.0
+    "@aws-sdk/util-user-agent-browser": 3.78.0
+    "@aws-sdk/util-user-agent-node": 3.80.0
+    "@aws-sdk/util-utf8-browser": 3.55.0
+    "@aws-sdk/util-utf8-node": 3.55.0
+    "@aws-sdk/util-waiter": 3.78.0
+    "@aws-sdk/xml-builder": 3.55.0
+    entities: 2.2.0
+    fast-xml-parser: 3.19.0
+    tslib: ^2.3.1
+  checksum: 679d34a2ad99de42e37c8f0c4e176fd657c9dfcb606008192d9def24815d1f71fc22ebfe9cce151e9aeadb2a71d644d7cbcbf7c453c44f176b557954c41d4aee
+  languageName: node
+  linkType: hard
+
 "@aws-sdk/client-s3@npm:^3.88.0":
   version: 3.88.0
   resolution: "@aws-sdk/client-s3@npm:3.88.0"
@@ -333,6 +378,49 @@ __metadata:
     fast-xml-parser: 3.19.0
     tslib: ^2.3.1
   checksum: 2c99e657af0734ced1e0c57fbdecd6b687529763b5437f67d24646b55ff2441094b4ae8f7c7002bee39526a0bdc648293961fed78c77d56e7e288a0ab49f8810
+  languageName: node
+  linkType: hard
+
+"@aws-sdk/client-sts@npm:3.92.0":
+  version: 3.92.0
+  resolution: "@aws-sdk/client-sts@npm:3.92.0"
+  dependencies:
+    "@aws-crypto/sha256-browser": 2.0.0
+    "@aws-crypto/sha256-js": 2.0.0
+    "@aws-sdk/config-resolver": 3.80.0
+    "@aws-sdk/credential-provider-node": 3.87.0
+    "@aws-sdk/fetch-http-handler": 3.78.0
+    "@aws-sdk/hash-node": 3.78.0
+    "@aws-sdk/invalid-dependency": 3.78.0
+    "@aws-sdk/middleware-content-length": 3.78.0
+    "@aws-sdk/middleware-host-header": 3.78.0
+    "@aws-sdk/middleware-logger": 3.78.0
+    "@aws-sdk/middleware-retry": 3.80.0
+    "@aws-sdk/middleware-sdk-sts": 3.78.0
+    "@aws-sdk/middleware-serde": 3.78.0
+    "@aws-sdk/middleware-signing": 3.78.0
+    "@aws-sdk/middleware-stack": 3.78.0
+    "@aws-sdk/middleware-user-agent": 3.78.0
+    "@aws-sdk/node-config-provider": 3.80.0
+    "@aws-sdk/node-http-handler": 3.82.0
+    "@aws-sdk/protocol-http": 3.78.0
+    "@aws-sdk/smithy-client": 3.85.0
+    "@aws-sdk/types": 3.78.0
+    "@aws-sdk/url-parser": 3.78.0
+    "@aws-sdk/util-base64-browser": 3.58.0
+    "@aws-sdk/util-base64-node": 3.55.0
+    "@aws-sdk/util-body-length-browser": 3.55.0
+    "@aws-sdk/util-body-length-node": 3.55.0
+    "@aws-sdk/util-defaults-mode-browser": 3.85.0
+    "@aws-sdk/util-defaults-mode-node": 3.85.0
+    "@aws-sdk/util-user-agent-browser": 3.78.0
+    "@aws-sdk/util-user-agent-node": 3.80.0
+    "@aws-sdk/util-utf8-browser": 3.55.0
+    "@aws-sdk/util-utf8-node": 3.55.0
+    entities: 2.2.0
+    fast-xml-parser: 3.19.0
+    tslib: ^2.3.1
+  checksum: 15e2de955a8d8f450def7b42d3b5d77652fff76c1417b02d73cae1dd14cd0edf98e766b94e95e200d7bd097955c7365bdfff5af817eafb74ae95432b0cda7572
   languageName: node
   linkType: hard
 
@@ -2220,6 +2308,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@poviolabs/spa-deploy-cli@workspace:."
   dependencies:
+    "@aws-sdk/client-cloudfront": ^3.92.0
     "@aws-sdk/client-s3": ^3.88.0
     "@aws-sdk/client-sts": ^3.87.0
     "@aws-sdk/credential-provider-env": ^3.55.0
