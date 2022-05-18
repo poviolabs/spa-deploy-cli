@@ -1,31 +1,29 @@
 stages:
   test:
-    spa_deploy:
+    spaDeploy:
       verbose: true
+      buildPath: "app"
+      includeGlob: "**"
+      # ignoreGlob:
 
-      path: ./app
-      include_glob: "**"
-      ignore_glob:
+      aws:
+        region: us-east-1
+        accountId:
+        endpoint: http://localhost:9090
 
-      # target
-      s3_endpoint: http://localhost:9090
-      s3_region: foobar
-      s3_bucket: deploy-bucket
-      s3_prefix:
-      s3_acl: "public-read"
-      # remove all not found locally
-      s3_purge: false
-      # force replace all
-      s3_force: false
-      # files to not cache and invalidate by default
-      # includes spa_index
-      s3_invalidate_glob:
+      s3:
+        acl: "public-read"
+        bucket: deploy-bucket
+        # prefix:
+        purge: false
+        force: false
+        # invalidateGlob: # extra glob for invalidation
 
-      # invalidations
-      cloudfront_id:
-      # extra paths to invalidate
-      # invalidate_glob already handles known files
-      cloudfront_invalidate_paths:
+
+      cloudfront:
+        distributionId:
+          - CF324365475432
+        invalidatePaths:
 
     # injected into process.env
     environment:
@@ -33,15 +31,17 @@ stages:
       AWS_ACCESS_KEY_ID: foobar
       AWS_SECRET_ACCESS_KEY: foobar
 
-    spa_index: index.html
-    spa_env:
-      # APP_STAGE: automatic via stage
-      # APP_VERSION: automatic via appVersion option
-      # APP_RELEASE: automatic via git
+    spaIndexGlob: index.html
 
-    slack_notify:
+    # inject variables into the website
+    spaGlobals:
+    # APP_STAGE: automatic via stage
+    # APP_VERSION: automatic via appVersion option
+    # APP_RELEASE: automatic via git
+
+    slackNotify:
       channel: C03AXDS9F2B
-      autolink_prefix: SP-
-      autolink_target: https://github.com/poviolabs/spa-deploy-cli/issues/
-      commit_prefix: https://github.com/poviolabs/spa-deploy-cli/commit/
-      project_name: ECS-Deploy
+      autolinkPrefix: SP-
+      autolinkTarget: https://github.com/poviolabs/spa-deploy-cli/issues/
+      commitPrefix: https://github.com/poviolabs/spa-deploy-cli/commit/
+      projectName: ECS-Deploy

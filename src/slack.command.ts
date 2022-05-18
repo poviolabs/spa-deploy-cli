@@ -111,11 +111,11 @@ export const command: yargs.CommandModule = {
 
     const { appVersion, branchName, repoName, buildUrl, slackToken } = argv;
 
-    const slackChannel = argv.slackChannel || argv.config.slack_notify?.channel;
-    const slackAutolinkPrefix = argv.config.slack_notify?.autolink_prefix;
-    const slackAutolinkTarget = argv.config.slack_notify?.autolink_target;
-    const slackCommitPrefix = argv.config.slack_notify?.commit_prefix;
-    const slackProjectName = argv.config.slack_notify?.project_name;
+    const slackChannel = argv.slackChannel || argv.config.slackNotify?.channel;
+    const slackAutolinkPrefix = argv.config.slackNotify?.autolinkPrefix;
+    const slackAutolinkTarget = argv.config.slackNotify?.autolinkTarget;
+    const slackCommitPrefix = argv.config.slackNotify?.commitPrefix;
+    const slackProjectName = argv.config.slackNotify?.projectName;
 
     const gitSha = await getSha(pwd);
     const gitShortSha = await getShortSha(pwd);

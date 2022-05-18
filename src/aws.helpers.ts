@@ -17,7 +17,7 @@ import {
   SyncAction,
   SyncActionColors,
 } from "./sync.helper";
-import { chk } from "./cli.helper";
+import {chk, info} from "./cli.helper";
 
 function getCredentials() {
   if (process.env.AWS_PROFILE) {
@@ -200,10 +200,7 @@ export async function prepareS3SyncPlan(
   })) {
     let action = s3Options.purge ? SyncAction.delete : SyncAction.unknown;
 
-    if (
-      localOptions.ignore_glob &&
-      isMatch(file.Key, localOptions.ignore_glob)
-    ) {
+    if (localOptions.ignoreGlob && isMatch(file.Key, localOptions.ignoreGlob)) {
       action = SyncAction.ignore;
     }
 
@@ -252,6 +249,7 @@ export async function executeS3SyncPlan(
     switch (item.action) {
       case SyncAction.create:
       case SyncAction.update: {
+        info(`Uploading ${key}`);
         await client.send(
           new PutObjectCommand({
             Bucket: s3Options.bucket,
@@ -264,12 +262,13 @@ export async function executeS3SyncPlan(
               ? item.transformers.reduce((acc, cur) => {
                   return cur(acc);
                 }, fs.readFileSync(item.local.path, "utf8"))
-              : fs.readFileSync(item.local.path, "utf8"),
+              : fs.readFileSync(item.local.path),
           })
         );
         break;
       }
       case SyncAction.delete: {
+        info(`Deleting ${key}`);
         await client.send(
           new DeleteObjectCommand({
             Bucket: s3Options.bucket,
@@ -285,15 +284,25 @@ export async function executeS3SyncPlan(
   }
 }
 
-export interface CloudFrontOptions {
-  ids: string[];
-  invalidate_paths: string[];
-  region: string;
+export function prepareCloudfrontInvalidation(
+  plan: S3SyncPlan,
+  invalidatePaths: string[]
+): string[] {
+  return [
+    ...Object.entries(plan).reduce((acc, [k, v]) => {
+      if (v.invalidate) {
+        acc.push(k);
+      }
+      return acc;
+    }, []),
+    ...invalidatePaths,
+  ];
 }
 
 export async function executeCloudfrontInvalidation(
-  plan: S3SyncPlan,
-  cloudFrontOptions: CloudFrontOptions
+  invalidations: string[],
+  distributionsId: string[],
+  region: string
 ) {
   // get cf client
   // get all file invalidation

@@ -7,7 +7,7 @@ import path from "path";
 import fs from "fs";
 import micromatch from "micromatch";
 
-import cli, { banner, variable } from "~cli.helper";
+import cli, { banner, info, variable, warning } from "~cli.helper";
 import { getGitChanges, getGitVersion, getRelease } from "~git.helper";
 import {
   Option,
@@ -18,7 +18,9 @@ import {
 } from "~yargs.helper";
 import process from "process";
 import {
+  executeCloudfrontInvalidation,
   executeS3SyncPlan,
+  prepareCloudfrontInvalidation,
   prepareS3SyncPlan,
   printS3SyncPlan,
 } from "~aws.helpers";
@@ -82,7 +84,7 @@ export const command: yargs.CommandModule = {
         const argv = loadYargsConfig(
           SpaBuildOptions,
           _argv as any,
-          "spa_deploy"
+          "spaDeploy"
         );
         argv.release =
           argv.release || (await getRelease(argv.pwd, argv.releaseStrategy));
@@ -131,7 +133,10 @@ export const command: yargs.CommandModule = {
 
     cli.banner("Build Environment");
 
-    const buildPath = path.join(pwd, argv.config.buildPath || "dist");
+    const buildPath = path.join(
+      pwd,
+      argv.config.spaDeploy?.buildPath || "dist"
+    );
     cli.variable("app__buildPath", buildPath);
     if (!fs.lstatSync(buildPath).isDirectory()) {
       cli.error(`Build path ${buildPath} is not a directory.`);
@@ -139,7 +144,6 @@ export const command: yargs.CommandModule = {
     }
 
     const release = argv.release;
-    cli.variable("RELEASE", argv.release);
 
     cli.banner("App Environment");
 
@@ -164,44 +168,44 @@ export const command: yargs.CommandModule = {
 
     cli.banner("Deploy Environment");
 
-    const awsRegion = argv.config.aws?.region;
+    const awsRegion = argv.config.spaDeploy?.aws?.region;
     if (!awsRegion) {
       cli.error(`AWS Region is not set`);
       return process.exit(1);
     }
     cli.variable("app__aws__region", awsRegion);
 
-    if (argv.config.aws?.endpoint) {
-      cli.variable("app__aws__endpoint", argv.config.aws?.endpoint);
+    if (argv.config.spaDeploy?.aws?.endpoint) {
+      cli.variable("app__aws__endpoint", argv.config.spaDeploy?.aws?.endpoint);
     }
 
-    const deployBucket = argv.config.s3?.deployBucket;
+    const deployBucket = argv.config.spaDeploy?.s3?.bucket;
     if (!deployBucket) {
       cli.error(`S3 Deploy Bucket is not set`);
       return process.exit(1);
     }
 
-    if (argv.config.s3?.prefix) {
-      cli.variable("app__s3__prefix", argv.config.s3?.prefix);
+    if (argv.config.spaDeploy?.s3?.prefix) {
+      cli.variable("app__s3__prefix", argv.config.spaDeploy?.s3?.prefix);
     }
 
     const s3Options = {
       region: awsRegion,
       bucket: deployBucket,
-      endpoint: argv.config.aws?.endpoint,
-      prefix: argv.config.s3?.prefix,
+      endpoint: argv.config.spaDeploy?.aws?.endpoint,
+      prefix: argv.config.spaDeploy?.s3?.prefix,
       force: argv.force,
       purge: argv.purge,
-      invalidateGlob: argv.config.s3?.invalidateGlob,
-      acl: argv.config.s3?.acl,
+      invalidateGlob: argv.config.spaDeploy?.s3?.invalidateGlob,
+      acl: argv.config.spaDeploy?.s3?.acl,
     };
 
     // prepare sync plan
     const plan = await prepareS3SyncPlan(
       {
         path: buildPath,
-        include_glob: argv.config.spa_deploy?.include_glob,
-        ignore_glob: argv.config.spa_deploy?.ignore_glob,
+        includeGlob: argv.config.spaDeploy?.includeGlob,
+        ignoreGlob: argv.config.spaDeploy?.ignoreGlob,
       },
       s3Options
     );
@@ -230,7 +234,49 @@ export const command: yargs.CommandModule = {
       }
     }
 
+    banner(`S3 Sync Plan`);
     printS3SyncPlan(plan, true, verbose);
+
+    // cloudfront
+
+    let invalidatePaths: string[] = [];
+    if (argv.config.spaDeploy?.cloudfront?.invalidatePaths) {
+      if (Array.isArray(argv.config.spaDeploy?.cloudfront?.invalidatePaths)) {
+        invalidatePaths = argv.config.spaDeploy?.cloudfront?.invalidatePaths;
+      } else {
+        invalidatePaths = [argv.config.spaDeploy?.cloudfront?.invalidatePaths];
+      }
+    }
+
+    const cloudfrontInvalidations = prepareCloudfrontInvalidation(
+      plan,
+      invalidatePaths
+    );
+
+    let cloudfrontId = [];
+    if (argv.config.spaDeploy?.cloudfrontId) {
+      if (Array.isArray(argv.config.spaDeploy?.cloudfront?.distributionId)) {
+        cloudfrontId = argv.config.spaDeploy?.cloudfront?.distributionId;
+      } else {
+        cloudfrontId = [argv.config.spaDeploy?.cloudfront?.distributionId];
+      }
+    }
+
+    if (cloudfrontInvalidations.length > 0) {
+      banner(`Cloudfront invalidations`);
+
+      for (const i of cloudfrontInvalidations) {
+        console.log(i);
+      }
+    }
+
+    // deploy
+
+    banner(`Deploy`);
+
+    if (cloudfrontId.length < 1 && cloudfrontInvalidations.length > 0) {
+      warning("No cloudfront set - will not invalidate cache!");
+    }
 
     if (!argv.ci) {
       if (!(await cli.confirm("Press enter to deploy S3..."))) {
@@ -242,6 +288,14 @@ export const command: yargs.CommandModule = {
     // execute file sync
     await executeS3SyncPlan(plan, s3Options);
 
-    // todo execute cloudfront invalidation
+    if (cloudfrontInvalidations.length > 0 && cloudfrontId.length > 0) {
+      await executeCloudfrontInvalidation(
+        cloudfrontInvalidations,
+        cloudfrontId,
+        awsRegion
+      );
+    }
+
+    info("Done!");
   },
 };
