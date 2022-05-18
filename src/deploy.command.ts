@@ -1,9 +1,11 @@
 /*
-
+  Deploy files to S3
  */
 
 import yargs from "yargs";
 import path from "path";
+import fs from "fs";
+import micromatch from "micromatch";
 
 import cli, { banner, variable } from "~cli.helper";
 import { getGitChanges, getGitVersion, getRelease } from "~git.helper";
@@ -15,7 +17,11 @@ import {
   YargsOptions,
 } from "~yargs.helper";
 import process from "process";
-import { prepareS3SyncPlan } from "~aws.helpers";
+import {
+  executeS3SyncPlan,
+  prepareS3SyncPlan,
+  printS3SyncPlan,
+} from "~aws.helpers";
 
 const { version: spaDeployVersion } = require("../package.json");
 
@@ -34,14 +40,6 @@ class SpaBuildOptions extends YargsOptions {
   release: string;
 
   @Option({
-    envAlias: "RELEASE_STRATEGY",
-    default: "gitsha",
-    choices: ["gitsha", "gitsha-stage"],
-    type: "string",
-  })
-  releaseStrategy: "gitsha" | "gitsha-stage";
-
-  @Option({
     envAlias: "APP_VERSION",
     envAliases: ["CIRCLE_TAG", "BITBUCKET_TAG"],
     type: "string",
@@ -49,35 +47,27 @@ class SpaBuildOptions extends YargsOptions {
   })
   appVersion: string;
 
-  @Option({ envAlias: "AWS_REGION", demandOption: true })
-  awsRegion: string;
-
-  @Option({ envAlias: "AWS_ACCOUNT_ID", demandOption: true })
-  awsAccountId: string;
-
-  @Option({ envAlias: "AWS_ENDPOINT", demandOption: true })
-  awsEndpoint: string;
+  @Option({
+    default: "gitsha",
+    choices: ["gitsha", "gitsha-stage"],
+    type: "string",
+  })
+  releaseStrategy: "gitsha" | "gitsha-stage";
 
   @Option({ envAlias: "IGNORE_GIT_CHANGES" })
   ignoreGitChanges: boolean;
 
-  @Option({ envAlias: "CI" })
-  ci: boolean;
+  @Option({ describe: "Remove all undefined files from S3" })
+  purge: boolean;
 
-  @Option({ envAlias: "DEPLOY_BUCKET", demandOption: true })
-  deployBucket: string;
-
-  @Option({ envAlias: "DISTRIBUTION_ID" })
-  distributionId: string;
-
-  @Option({ envAlias: "BUILD_PATH", demandOption: true })
-  buildPath: string;
-
-  @Option({ envAlias: "DEPLOY_PATH" })
-  deployPath: string;
+  @Option({ describe: "Replace all files even if not changed" })
+  force: boolean;
 
   @Option({ envAlias: "VERBOSE", default: false })
   verbose: boolean;
+
+  @Option({ envAlias: "CI" })
+  ci: boolean;
 
   config: Config;
 }
@@ -105,12 +95,14 @@ export const command: yargs.CommandModule = {
 
     banner(`SPA Build ${spaDeployVersion}`);
 
-    variable("PWD", argv.pwd);
+    const pwd = argv.pwd;
+    variable("PWD", pwd);
     variable("NODE_VERSION", process.version);
 
-    variable("GIT_CLI_VERSION", await getGitVersion(argv.pwd));
+    variable("GIT_CLI_VERSION", await getGitVersion(pwd));
 
-    if (argv.stage) {
+    const stage = argv.stage;
+    if (stage) {
       // get current STAGE if set
       // CI would not use this for builds
       variable("STAGE", argv.stage);
@@ -120,7 +112,9 @@ export const command: yargs.CommandModule = {
       cli.info("Running Interactively");
     }
 
-    const gitChanges = await getGitChanges(argv.pwd);
+    const verbose = !!argv.verbose;
+
+    const gitChanges = await getGitChanges(pwd);
     if (gitChanges !== "") {
       if (argv.ignoreGitChanges) {
         cli.warning("Changes detected in .git");
@@ -131,77 +125,123 @@ export const command: yargs.CommandModule = {
           cli.banner("Detected Changes in Git - Stage must be clean to build!");
           console.log(gitChanges);
         }
-        process.exit(1);
+        return process.exit(1);
       }
     }
 
     cli.banner("Build Environment");
 
-    cli.variable("BUILD_PATH", argv.buildPath);
+    const buildPath = path.join(pwd, argv.config.buildPath || "dist");
+    cli.variable("app__buildPath", buildPath);
+    if (!fs.lstatSync(buildPath).isDirectory()) {
+      cli.error(`Build path ${buildPath} is not a directory.`);
+      return process.exit(1);
+    }
+
+    const release = argv.release;
     cli.variable("RELEASE", argv.release);
-    const buildPath = path.join(argv.pwd, argv.buildPath);
-    cli.info(`Build path: ${buildPath}`);
 
     cli.banner("App Environment");
 
+    let version = argv.appVersion;
+    if (!version) {
+      version = `${stage}-${release}`;
+    } else if (/^[\d.]+$/.exec(version)) {
+      // if just the semver is passed in, prefix it!
+      version = `${stage}-${version}`;
+    }
+
     const prodEnv: Record<string, string> = {
-      ...(argv.config.spa_env ? argv.config.spa_env : {}),
-      APP_STAGE: argv.stage,
-      APP_VERSION: argv.appVersion,
-      APP_RELEASE: argv.release,
+      ...(argv.config.spaEnv ? argv.config.spaEnv : {}),
+      APP_STAGE: stage,
+      APP_VERSION: version,
+      APP_RELEASE: release,
     };
 
     for (const [k, v] of Object.entries(prodEnv)) {
       cli.variable(k, v);
     }
 
-    /*
-    if (argv.indexFiles) {
-      cli.banner("Setting App Environment");
+    cli.banner("Deploy Environment");
 
-      for (const fileName of argv.indexFiles.split(",")) {
-        const filePath = path.resolve(buildPath, fileName);
+    const awsRegion = argv.config.aws?.region;
+    if (!awsRegion) {
+      cli.error(`AWS Region is not set`);
+      return process.exit(1);
+    }
+    cli.variable("app__aws__region", awsRegion);
 
-        const fileContents = fs.readFileSync(filePath, "utf8");
-
-        if (!fileContents.includes('<script id="env-data">')) {
-          warning(`${fileName} does not contain env-data`);
-        } else {
-          info(`Writing env-data into ${fileName}`);
-          fs.writeFileSync(
-            filePath,
-            fileContents.replace(
-              /<script id="env-data">[^<]*<\/script>/,
-              `<script id="env-data">${Object.entries(prodEnv)
-                .map(([k, v]) => {
-                  return `window.${k}='${v}'`;
-                })
-                .join(";")}</script>`
-            ),
-            "utf8"
-          );
-        }
-      }
+    if (argv.config.aws?.endpoint) {
+      cli.variable("app__aws__endpoint", argv.config.aws?.endpoint);
     }
 
-     */
+    const deployBucket = argv.config.s3?.deployBucket;
+    if (!deployBucket) {
+      cli.error(`S3 Deploy Bucket is not set`);
+      return process.exit(1);
+    }
 
-    const plan = prepareS3SyncPlan(
+    if (argv.config.s3?.prefix) {
+      cli.variable("app__s3__prefix", argv.config.s3?.prefix);
+    }
+
+    const s3Options = {
+      region: awsRegion,
+      bucket: deployBucket,
+      endpoint: argv.config.aws?.endpoint,
+      prefix: argv.config.s3?.prefix,
+      force: argv.force,
+      purge: argv.purge,
+      invalidateGlob: argv.config.s3?.invalidateGlob,
+      acl: argv.config.s3?.acl,
+    };
+
+    // prepare sync plan
+    const plan = await prepareS3SyncPlan(
       {
         path: buildPath,
         include_glob: argv.config.spa_deploy?.include_glob,
         ignore_glob: argv.config.spa_deploy?.ignore_glob,
       },
-      {
-        region: argv.s3Region,
-        bucket: argv.deployBucket,
-        endpoint: argv.awsEndpoint,
-        prefix: argv,
-      }
+      s3Options
     );
 
-    cli.banner("Deploy Environment");
-    cli.variable("AWS_REGION", argv.awsRegion);
-    cli.variable("DEPLOY_BUCKET", argv.deployBucket);
+    // inject globals into index files
+    const indexFiles = argv.config.spaIndexGlob
+      ? micromatch(Object.keys(plan), argv.config.spaIndexGlob)
+      : [];
+    if (indexFiles.length > 0) {
+      const injectedData = `<script id="env-data">${Object.entries(prodEnv)
+        .map(([k, v]) => {
+          return `window.${k}='${v}'`;
+        })
+        .join(";")}</script>`;
+
+      for (const path of indexFiles) {
+        plan[path].transformers = [
+          ...(plan[path].transformers || []),
+          (fileContents) => {
+            return fileContents.replace(
+              /<script id="env-data">[^<]*<\/script>/,
+              injectedData
+            );
+          },
+        ];
+      }
+    }
+
+    printS3SyncPlan(plan, true, verbose);
+
+    if (!argv.ci) {
+      if (!(await cli.confirm("Press enter to deploy S3..."))) {
+        cli.info("Canceled");
+        return;
+      }
+    }
+
+    // execute file sync
+    await executeS3SyncPlan(plan, s3Options);
+
+    // todo execute cloudfront invalidation
   },
 };

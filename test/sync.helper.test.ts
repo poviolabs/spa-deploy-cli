@@ -33,7 +33,7 @@ describe("config", () => {
   test("it should scan s3 files", async () => {
     const plan = await prepareS3SyncPlan({ path: appRoot }, config);
 
-    printS3SyncPlan(plan);
+    printS3SyncPlan(plan, true, true);
 
     await executeS3SyncPlan(plan, config);
   });

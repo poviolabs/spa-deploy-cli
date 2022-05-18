@@ -63,7 +63,7 @@ export interface SyncS3Options {
   /**
    * Matched files are not cached and are invalidated on deploy
    */
-  invalidate_glob?: string[];
+  invalidateGlob?: string[];
 
   acl?: string;
 }
@@ -111,14 +111,24 @@ export interface S3SyncPlanItem {
   contentType?: string;
   invalidate?: boolean;
   cache?: boolean;
-  transformers?: Array<(text: Buffer) => Buffer>;
+  transformers?: Array<(text: string) => string>;
 }
 
 export type S3SyncPlan = Record<string, S3SyncPlanItem>;
 
-export function printS3SyncPlan(plan: S3SyncPlan, print = true) {
+export function printS3SyncPlan(
+  plan: S3SyncPlan,
+  print = true,
+  verbose = false
+) {
   const output = [];
   for (const [key, item] of Object.entries(plan)) {
+    if (!verbose) {
+      if (item.action == SyncAction.unchanged) {
+        continue;
+      }
+    }
+
     const line = [
       SyncActionColors[item.action](item.action.padEnd(9, " ")),
       [
@@ -158,8 +168,8 @@ export async function prepareS3SyncPlan(
     };
 
     if (
-      s3Options.invalidate_glob &&
-      isMatch(file.key, s3Options.invalidate_glob)
+      s3Options.invalidateGlob &&
+      isMatch(file.key, s3Options.invalidateGlob)
     ) {
       plan[file.key] = {
         ...planItem,
@@ -190,7 +200,10 @@ export async function prepareS3SyncPlan(
   })) {
     let action = s3Options.purge ? SyncAction.delete : SyncAction.unknown;
 
-    if (localOptions.ignore_glob && isMatch(file.Key, localOptions.ignore_glob)) {
+    if (
+      localOptions.ignore_glob &&
+      isMatch(file.Key, localOptions.ignore_glob)
+    ) {
       action = SyncAction.ignore;
     }
 
@@ -233,6 +246,7 @@ export async function executeS3SyncPlan(
     endpoint: s3Options.endpoint,
   });
 
+  // todo order of importance / cache / index files
   // todo multi-threaded
   for (const [key, item] of Object.entries(plan)) {
     switch (item.action) {
@@ -249,8 +263,8 @@ export async function executeS3SyncPlan(
             Body: item.transformers
               ? item.transformers.reduce((acc, cur) => {
                   return cur(acc);
-                }, fs.readFileSync(item.local.path))
-              : fs.readFileSync(item.local.path),
+                }, fs.readFileSync(item.local.path, "utf8"))
+              : fs.readFileSync(item.local.path, "utf8"),
           })
         );
         break;
@@ -285,7 +299,6 @@ export async function executeCloudfrontInvalidation(
   // get all file invalidation
   // append folder invalidation
   // do the invalidation
-
   /*
   const response = await cf
       .createInvalidation({

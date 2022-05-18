@@ -15,7 +15,7 @@ export interface Config extends ConfigItem {
   /**
    * dotenv files used to load environment
    */
-  readonly env_files?: string[];
+  readonly envFiles?: string[];
 }
 
 /**
@@ -66,7 +66,7 @@ export function loadConfig(
     config = {
       stage,
       environment: {},
-      env_files: [],
+      envFiles: [],
       // read tree from .yaml stage
       ...yamlConfig.stages[configName],
     };
@@ -89,8 +89,8 @@ export function loadConfig(
     // get environment from yaml
     ...config.environment,
 
-    // get .env from env_files defined in yaml
-    ...config.env_files.reduce((acc, cur) => {
+    // get .env from envFiles defined in yaml
+    ...config.envFiles.reduce((acc, cur) => {
       return { ...acc, ...readEnv(root, cur) };
     }, {} as Record<string, string>),
 
@@ -123,7 +123,7 @@ export function loadEnvironmentIntoConfig(
   environment: Record<string, string>,
   prefix: string | false = "app" || false
 ) {
-  const reservedRoots = ["environment", "env_files"];
+  const reservedRoots = ["environment", "envFiles"];
 
   for (const [key, value] of Object.entries(environment)) {
     if (key.startsWith("__") || key.endsWith("__")) {

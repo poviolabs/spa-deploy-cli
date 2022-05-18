@@ -3,80 +3,180 @@
 Use this tool to deploy a SPA to AWS with CI or manually.
 
 Features:
- - Targeted CloudFront invalidation
- - Environment and AWS credentials storage conventions
- - CircleCI and Bitbucket Pipelines examples
- - Embedded Version and Release ( eg: for Sentry )
- - Build uplifting ( dev -> stg -> prd )
+ - Targeted CloudFront invalidation and caching
+ - CircleCI, Bitbucket, and  GitHub Actions examples
+ - Embedded Globals and Build uplifting ( dev -> stg -> prd )
+ - Uses the config.yaml structure
 
 Examples:
  - [React with CRA/Craco](./examples/react-craco)
 
-# Install
+# Setup
 
-Install this package
-
-```
+```bash
 yarn add spa-deploy-cli@poviolabs/spa-deploy-cli#v1
+
+# update
+yarn up spa-deploy-cli@poviolabs/spa-deploy-cli
 ```
 
-# Set up
+## Full config.yaml
+
+Please see the [examples](./examples/react-craco/config.yaml) for sane defaults!
+
+```yaml
+
+stages:
+  myapp-dev: # one stage per deploy
+    spaDeploy:
+      verbose: false
+      buildPath: "./dist"
+      includeGlob: "**"
+      ignoreGlob:
+        
+      aws:
+        region: us-east-1
+        accountId:
+        
+      s3:
+        acl: "public-read"
+        bucket: myapp-dev-website
+        prefix:
+        purge: false
+        force: false
+        invalidateGlob: # extra glob for invalidation
+      
+      cloudfront:
+        distributionId:
+          - CF324365475432
+        invalidatePaths:
+
+      releaseStrategy:
+  
+    spaIndexGlob: index.html
+  
+    # inject variables into the website
+    spaGlobals:
+      # APP_STAGE: automatic via stage
+      # APP_VERSION: automatic via appVersion option
+      # APP_RELEASE: automatic via git
+  
+    slackNotify:
+      channel: C03AXDS9F2B
+      autolinkPrefix: SP-
+      autolinkTarget: https://github.com/poviolabs/spa-deploy-cli/issues/
+      commitPrefix: https://github.com/poviolabs/spa-deploy-cli/commit/
+      projectName: ECS-Deploy
+  
+    ## dotenv overrides
+    # envFiles: [ '.env.myapp-dev.secrets' ]
+    ## environment overrides
+    # environment:
+    #  app__spaDeploy__s3__bucket: myapp-dev-website
+```
+
+## Injecting globals
 
 Add this snippet to the `head` section in the main `index.html`.
-The content will be replaced with all APP_[VARIABLE] in the environment
+The content will be replaced with `spaGlobals` in the environment
 at build time.
 
 ```html
 <script id="env-data">
     // you can add local testing variables here,
     // this will get overwritten at build
-    window.APP_THING = "value";
+    window.APP_STAGE = "myapp-stg";
 </script>
 ```
 
-Ignore .secret env files
-```gitignore
-.env.*.secrets
+## Local Deploy
+
+Check the examples for CI deploy strategies or you can manually deploy with setting up the AWS environment:
+
+config.local.yaml  (don't forget to gitignore!)
+```yaml
+stages:
+  myapp-dev:
+    environment:
+      AWS_ACCESS_KEY_ID: 
+      AWS_SECRET_ACCESS_KEY:
 ```
 
-## Required environment
-
-You can set these in .env.[stage][.secrets] or just in the CI
-
-.env.[stage]
-```dotenv
-DEPLOY_BUCKET=
-AWS_REGION=us-east-1
-DISTRIBUTION_ID= # optional, will invalidate CF cache, comma separated
-INDEX_FILES=index.html # optional, comma separated file names or "false"
-BUILD_PATH=./build # optional, defaults to `${__dirname}/build`
-#INVALIDATE_FILES= # comma separated files to exclude from cache and invalidate in addition to INDEX_FILES, defaults to common react files
-#INVALIDATE_PATHS= # comma separated paths to invalidate
-#DEPLOY_PATH= # prefix directory on s3
-#PURGE=true # remove old files
-#IGNORE_PATHS # ignore these paths while purging
-#DEPLOY_PATH=admin/ # Prefix for S3 deployment
+```bash
+yarn spa-deploy-cli deploy --stage myapp-stg --appVersion 0.0.1
 ```
 
-.env.stage.secrets
-```dotenv
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
+# spa-deploy-cli deploy
+
+Descriptions for useful flags. Use `--help` for a comprehensive list
+
+### --pwd
+
+Root from where to fetch `config.yaml` and the base for all relative paths.
+
+### --stage
+
+The slug of the deployment (ie. prd/stg/dev). Used in config.yaml.
+
+### --release 
+
+Release of the build (ie the git sha) and is unique per code.
+
+### --appVersion
+
+Version of the deploy. Tied to a specific Release and Stage. 
+If supplied with a semver format, the version will be prefixed with `${STAGE}`
+
+### --releaseStrategy
+
+- gitsha - make the same build for all stages
+- gitsha-stage - make a build based on the stage and git sha in cases where the build is different per stage
+
+### --ignoreGitChanges
+
+Use this flag while debugging the build. This might have unintended consequences - never deploy a build made using this flag.
+
+### --verbose
+
+Display more output
+
+# spa-deploy-cli slack
+
+### --message
+
+Any text appended to the Slack message
+
+```
+yarn ecs-deploy-cli slack --messageType success --message A custom message!
 ```
 
-## Per stage overrides
+### --messageType
 
-Some CI services are limited to one set of variables, you can use a
-prefix `STAGE_[stage]`, that will get used at build.
+- `success`
+- `failure`
+- `info`
 
+# Development
+
+## Test locally
+
+```bash
+# test with ts-node
+yarn test:ts-node --help
+
+# build new version
+yarn build
+
+# test build
+yarn test --help
 ```
-Example: `STAGE_myapp_dev_AWS_REGION=eu-central-1`
-will get changed into`AWS_REGION=eu-central-1`.
-```
 
+## Analyze package
+npx webpack-bundle-analyzer ./dist/stats.json
 
-# Manual deploy
+### Overriding config and global prefix
 
-```
-STAGE=myapp-dev VERSION=myapp-dev-0.0.1 yarn spa-deploy-cli
+```yaml
+CONFIG_PREFIX=app
+CONFIG_FILE=config.yaml
 ```
