@@ -7,7 +7,7 @@
     "build": "yarn version patch && yarn ncc build ./src/index.ts -m --no-source-map-register --stats-out ./dist/stats.json && chmod +x ./dist/index.js",
     "clean": "rm ./dist/*"
   },
-  "version": "0.2.0",
+  "version": "0.3.0",
   "keywords": [
     "povio",
     "spa",
@@ -33,6 +33,7 @@
     "@aws-sdk/credential-provider-ini": "^3.72.0",
     "@aws-sdk/node-config-provider": "^3.58.0",
     "@jest/types": "^27.5.1",
+    "@slack/web-api": "^6.7.1",
     "@swc/core": "^1.2.170",
     "@swc/jest": "^0.2.20",
     "@types/eslint": "^8.4.1",

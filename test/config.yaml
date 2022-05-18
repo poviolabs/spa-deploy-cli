@@ -27,13 +27,6 @@ stages:
       # invalidate_glob already handles known files
       cloudfront_invalidate_paths:
 
-      slack:
-        channel: C03AXDS9F2B
-        autolink_prefix: SP-
-        autolink_target: https://github.com/poviolabs/spa-deploy-cli/issues/
-        commit_prefix: https://github.com/poviolabs/spa-deploy-cli/commit/
-        project_name: ECS-Deploy
-
     # injected into process.env
     environment:
       # this should not be committed to git!
@@ -45,3 +38,10 @@ stages:
       # APP_STAGE: automatic via stage
       # APP_VERSION: automatic via appVersion option
       # APP_RELEASE: automatic via git
+
+    slack_notify:
+      channel: C03AXDS9F2B
+      autolink_prefix: SP-
+      autolink_target: https://github.com/poviolabs/spa-deploy-cli/issues/
+      commit_prefix: https://github.com/poviolabs/spa-deploy-cli/commit/
+      project_name: ECS-Deploy

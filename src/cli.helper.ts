@@ -3,8 +3,6 @@ import * as Console from "console";
 import Prompt from "prompt-sync";
 import process from "process";
 
-const { version } = require("../package.json");
-
 export const chk = new chalk.Instance({ level: 2 });
 const log = Console.log;
 const prompt = Prompt({ sigint: true });

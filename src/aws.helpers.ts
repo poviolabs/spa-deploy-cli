@@ -141,12 +141,6 @@ export function printS3SyncPlan(plan: S3SyncPlan, print = true) {
   }
   return output.join("\n");
 }
-
-export interface CloudFrontOptions {
-  ids: string[];
-  invalidate_paths: string[];
-}
-
 export async function prepareS3SyncPlan(
   localOptions: ScanLocalOptions,
   s3Options: SyncS3Options
@@ -196,7 +190,7 @@ export async function prepareS3SyncPlan(
   })) {
     let action = s3Options.purge ? SyncAction.delete : SyncAction.unknown;
 
-    if (localOptions.ignore && isMatch(file.Key, localOptions.ignore)) {
+    if (localOptions.ignore_glob && isMatch(file.Key, localOptions.ignore_glob)) {
       action = SyncAction.ignore;
     }
 
@@ -232,8 +226,7 @@ export async function prepareS3SyncPlan(
 
 export async function executeS3SyncPlan(
   plan: S3SyncPlan,
-  s3Options: SyncS3Options,
-  cloudfrontOptions: CloudFrontOptions
+  s3Options: SyncS3Options
 ) {
   const client = getS3ClientInstance({
     region: s3Options.region,
@@ -276,8 +269,35 @@ export async function executeS3SyncPlan(
       }
     }
   }
+}
 
-  if (cloudfrontOptions?.ids?.length > 0) {
-    // todo, invalidate cloudfront
-  }
+export interface CloudFrontOptions {
+  ids: string[];
+  invalidate_paths: string[];
+  region: string;
+}
+
+export async function executeCloudfrontInvalidation(
+  plan: S3SyncPlan,
+  cloudFrontOptions: CloudFrontOptions
+) {
+  // get cf client
+  // get all file invalidation
+  // append folder invalidation
+  // do the invalidation
+
+  /*
+  const response = await cf
+      .createInvalidation({
+        DistributionId,
+        InvalidationBatch: {
+          CallerReference: new Date().toISOString(),
+          Paths: {
+            Quantity: items.length,
+            Items: items,
+          },
+        },
+      })
+      .promise();
+  */
 }

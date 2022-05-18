@@ -7,6 +7,7 @@ import cli from "~cli.helper";
 
 interface IOptionProperties extends Options {
   envAlias?: string;
+  envAliases?: string[];
 }
 
 const optionsKey = Symbol("options_key");
@@ -51,7 +52,7 @@ export function getYargsOptions<T>(target: any): Record<keyof T, Options> {
     a[property] = Object.fromEntries(
       Object.entries(options).filter(
         ([optionName, optionValue]) =>
-          !["envAlias", "default"].includes(optionName)
+          !["envAlias", "default", "envAliases"].includes(optionName)
       )
     );
     return a;
@@ -94,15 +95,32 @@ export function loadYargsConfig<T extends YargsOptions>(
     if (["pwd", "stage", "config"].includes(name)) {
       continue;
     }
-    argv[name] =
-      // yargs is always right
-      _argv[name] ||
-      // default to config if set
-      (configDefaultBase &&
+
+    argv[name] = (() => {
+      if (_argv[name] !== undefined) {
+        return _argv[name];
+      }
+
+      if (
+        configDefaultBase &&
         config[configDefaultBase] &&
-        config[configDefaultBase][name]) ||
-      // fallback to env
-      process.env[o.envAlias];
+        config[configDefaultBase][name] !== undefined
+      ) {
+        return config[configDefaultBase][name];
+      }
+
+      if (process.env[o.envAlias] !== undefined) {
+        return process.env[o.envAlias];
+      }
+
+      if (o.envAliases?.length > 0) {
+        for (const i of o.envAliases) {
+          if (process.env[i] !== undefined) {
+            return process.env[i];
+          }
+        }
+      }
+    })();
 
     // write alias back into process.env
     if (o.envAlias && process.env[o.envAlias] !== argv[name]) {

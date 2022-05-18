@@ -3,8 +3,8 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-
-import { command as deployCommand } from "~spa-deploy";
+import { command as deployCommand } from "./deploy.command";
+import { command as slackCommand } from "./slack.command";
 import * as cli from "~cli.helper";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -14,6 +14,7 @@ yargs(hideBin(process.argv))
   .version(version)
   .scriptName("spa-deploy-cli")
   .command(deployCommand)
+  .command(slackCommand)
   .help()
   .demandCommand(1)
   .strictCommands(true)

@@ -32,16 +32,16 @@ export interface LocalFile {
 
 export interface ScanLocalOptions {
   path: string;
-  ignore?: string[];
-  patterns?: string[];
+  ignore_glob?: string[];
+  include_glob?: string[];
 }
 
 export async function* scanLocal(
   options: ScanLocalOptions
 ): AsyncGenerator<LocalFile> {
-  for await (const entry of fgSync(options.patterns || ["**"], {
+  for await (const entry of fgSync(options.include_glob || ["**"], {
     onlyFiles: true,
-    ignore: options.ignore,
+    ignore: options.ignore_glob,
     cwd: options.path,
     unique: true,
   })) {
