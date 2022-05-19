@@ -26,6 +26,6 @@ pipelines:
           variables:
             STAGE: myapp-dev
             # add variables to config.yaml
-            # add secrets to circleci environment
+            # add secrets to bitbucket environment
           script:
-            - yarn spa-deploy-cli --branch-name $BITBUCKET_BRANCH
+            - yarn spa-deploy-cli deploy

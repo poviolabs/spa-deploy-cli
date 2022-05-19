@@ -123,7 +123,8 @@ export interface S3SyncPlanItem {
   contentType?: string;
   invalidate?: boolean;
   cache?: boolean;
-  transformers?: Array<(text: string) => string>;
+  data?: string | Buffer;
+  dataHash?: string;
 }
 
 export type S3SyncPlan = {
@@ -140,7 +141,7 @@ export function printS3SyncPlan(
 ) {
   const output = [];
   for (const item of plan.items) {
-    const { key, action, invalidate, cache, transformers, local, contentType } =
+    const { key, action, invalidate, cache, local, contentType, data, remote } =
       item;
     if (!verbose) {
       if (action == SyncAction.unchanged) {
@@ -153,7 +154,9 @@ export function printS3SyncPlan(
       [
         invalidate ? chk.magenta("Invalidate") : "          ",
         cache ? (action == SyncAction.unchanged ? "Cached" : "Cache") : "     ",
-        transformers?.length > 0 ? "Transf." : "       ",
+        data !== undefined ? "DATA  " : "      ",
+        // local?.hash,
+        // remote?.eTag,
       ].join("\t"),
       ` ${key} `,
       local ? `(${local.size}b ${contentType ?? ""})` : "",
@@ -215,28 +218,27 @@ export async function prepareS3SyncPlan(
     bucket: s3Options.bucket,
     prefix: s3Options.prefix,
   })) {
-    let action = s3Options.purge ? SyncAction.delete : SyncAction.unknown;
+    const action = s3Options.purge ? SyncAction.delete : SyncAction.unknown;
 
-    if (localOptions.ignoreGlob && isMatch(file.Key, localOptions.ignoreGlob)) {
-      action = SyncAction.ignore;
-    }
+    //if (localOptions.ignoreGlob && isMatch(file.Key, localOptions.ignoreGlob)) {
+    //  action = SyncAction.ignore;
+    //}
 
     itemsDict[file.Key] = {
       key: file.Key,
       remote: {
         key: file.Key,
         lastModified: file.LastModified,
-        eTag: file.ETag,
+        eTag: file.ETag.replace(/"/g, ""),
         size: file.Size,
       },
       action,
       ...(itemsDict[file.Key] ? itemsDict[file.Key] : {}),
     };
 
-    if (itemsDict[file.Key].action === SyncAction.create) {
+    if (itemsDict[file.Key].local) {
       if (
         !s3Options.force &&
-        itemsDict[file.Key].local.size === itemsDict[file.Key].remote.size &&
         itemsDict[file.Key].local.hash === itemsDict[file.Key].remote.eTag
       ) {
         // unchanged!
@@ -275,7 +277,7 @@ export async function executeS3SyncPlan(plan: S3SyncPlan) {
       contentType,
       contentDisposition,
       local,
-      transformers,
+      data,
     } = item;
     switch (action) {
       case SyncAction.create:
@@ -289,11 +291,7 @@ export async function executeS3SyncPlan(plan: S3SyncPlan) {
             CacheControl: cacheControl,
             ContentType: contentType,
             ContentDisposition: contentDisposition,
-            Body: transformers
-              ? transformers.reduce((acc, cur) => {
-                  return cur(acc);
-                }, fs.readFileSync(local.path, "utf8"))
-              : fs.readFileSync(local.path),
+            Body: data !== undefined ? data : fs.readFileSync(local.path),
           })
         );
         break;
@@ -323,7 +321,7 @@ export function prepareCloudfrontInvalidation(
   return [
     ...items.reduce((acc, item) => {
       if (item.invalidate) {
-        acc.push(item.remote.key);
+        acc.push(`/${item.remote.key}`);
       }
       return acc;
     }, []),

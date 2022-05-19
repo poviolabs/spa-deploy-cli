@@ -6,6 +6,7 @@ import yargs from "yargs";
 import path from "path";
 import fs from "fs";
 import micromatch from "micromatch";
+import { createHash } from "crypto";
 
 import cli, { banner, info, variable, warning } from "~cli.helper";
 import { getGitChanges, getGitVersion, getRelease } from "~git.helper";
@@ -134,7 +135,7 @@ export const command: yargs.CommandModule = {
 
     cli.banner("Build Environment");
 
-    const { spaDeploy, spaEnv, spaIndexGlob } = argv.config;
+    const { spaDeploy, spaGlobals, spaIndexGlob } = argv.config;
 
     const buildPath = path.join(pwd, spaDeploy?.buildPath || "dist");
     cli.variable("app__buildPath", buildPath);
@@ -156,7 +157,7 @@ export const command: yargs.CommandModule = {
     }
 
     const prodEnv: Record<string, string> = {
-      ...(spaEnv ? spaEnv : {}),
+      ...(spaGlobals ? spaGlobals : {}),
       APP_STAGE: stage,
       APP_VERSION: version,
       APP_RELEASE: release,
@@ -217,34 +218,49 @@ export const command: yargs.CommandModule = {
       ? plan.items.filter((x) => micromatch.isMatch(x.key, spaIndexGlob))
       : [];
     if (indexFiles.length > 0) {
-      const injectedData = `<script id="env-data">\n${Object.entries(prodEnv)
+      const injectedData = `<script id="env-data">${Object.entries(prodEnv)
         .map(([k, v]) => {
           return `window.${k}='${v}'`;
         })
-        .join(";\n")}\n</script>`;
-
-      if (verbose) {
-        banner(`S3 Index Injection`);
-        console.log(injectedData);
-      }
+        .join(";")}</script>`;
 
       for (const item of indexFiles) {
-        item.transformers = [
-          ...(item.transformers || []),
-          (fileContents) => {
-            return fileContents.replace(
-              /<script id="env-data">[^<]*<\/script>/,
-              injectedData.replace("\n", "")
-            );
-          },
-        ];
+        item.cache = false;
+        item.cacheControl = "public, must-revalidate";
+        const data = fs.readFileSync(item.local.path, "utf-8");
+
+        if (data.match('<script id="env-data">')) {
+          item.data = data.replace(
+            /<script id="env-data">[^<]*<\/script>/,
+            injectedData
+          );
+        } else if (data.match("</head>")) {
+          warning(
+            `Could not find <script id="env-data"> in ${item.key}. Injecting at end of HEAD.`
+          );
+          item.data = data.replace(/<\/head>/, injectedData + `</head>`);
+        } else {
+          warning(`Could not find injection point in ${item.key}`);
+          continue;
+        }
+        item.dataHash = createHash("md5").update(item.data).digest("hex");
+        if (
+          !argv.force &&
+          item.action === SyncAction.update &&
+          item.remote?.eTag
+        ) {
+          if (item.remote?.eTag === item.dataHash) {
+            item.action = SyncAction.unchanged;
+            item.invalidate = false;
+          }
+        }
       }
     }
 
     const sortAction: Record<SyncAction, number> = {
       [SyncAction.unknown]: 0,
-      [SyncAction.unchanged]: 1,
-      [SyncAction.ignore]: 2,
+      [SyncAction.ignore]: 1,
+      [SyncAction.unchanged]: 2,
       [SyncAction.create]: 3,
       [SyncAction.update]: 4,
       [SyncAction.delete]: 5,
@@ -261,8 +277,8 @@ export const command: yargs.CommandModule = {
       if (sortAction[a.action] < sortAction[b.action]) return -1;
 
       // cached items go first
-      if (a.cache && !b.cache) return 1;
-      if (!a.cache && b.cache) return -1;
+      if (a.cache && !b.cache) return -1;
+      if (!a.cache && b.cache) return 1;
 
       return 0;
     });
@@ -277,7 +293,9 @@ export const command: yargs.CommandModule = {
       parseArray<string>(spaDeploy?.cloudfront?.invalidatePaths)
     );
 
-    const cloudfrontId = parseArray<string>(spaDeploy?.cloudfrontId);
+    const cloudfrontId = parseArray<string>(
+      spaDeploy?.cloudfront?.distributionId
+    );
     if (cloudfrontInvalidations.length > 0) {
       banner(`Cloudfront invalidations`);
 
@@ -293,7 +311,17 @@ export const command: yargs.CommandModule = {
     }
 
     if (!argv.ci) {
-      if (!(await cli.confirm("Press enter to deploy S3..."))) {
+      if (
+        !plan.items.some((x) =>
+          [SyncAction.create, SyncAction.update, SyncAction.delete].includes(
+            x.action
+          )
+        )
+      ) {
+        cli.info("Nothing to do!");
+        return;
+      }
+      if (!(await cli.confirm("Press enter to deploy..."))) {
         cli.info("Canceled");
         return;
       }

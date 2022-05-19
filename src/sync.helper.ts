@@ -8,7 +8,7 @@ import { chk } from "./cli.helper";
 export enum SyncAction {
   unknown = "Unknown",
   unchanged = "Unchanged",
-  ignore = "Ignored",
+  ignore = "Ignore",
   delete = "Delete",
   update = "Update",
   create = "Create",

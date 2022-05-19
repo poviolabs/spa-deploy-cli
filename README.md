@@ -66,7 +66,7 @@ stages:
       autolinkPrefix: SP-
       autolinkTarget: https://github.com/poviolabs/spa-deploy-cli/issues/
       commitPrefix: https://github.com/poviolabs/spa-deploy-cli/commit/
-      projectName: ECS-Deploy
+      projectName: SPA-Deploy
   
     ## dotenv overrides
     # envFiles: [ '.env.myapp-dev.secrets' ]

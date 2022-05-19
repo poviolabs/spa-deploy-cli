@@ -35,6 +35,6 @@ describe("config", () => {
 
     printS3SyncPlan(plan, true, true);
 
-    await executeS3SyncPlan(plan, config);
+    await executeS3SyncPlan(plan);
   });
 });

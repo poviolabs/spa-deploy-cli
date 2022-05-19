@@ -1,0 +1,64 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.0.2
+
+jobs:
+
+  build-and-deploy: &build-and-deploy
+
+    docker:
+      - image: cimg/node:16.13
+
+    steps:
+      - checkout
+
+      - node/install-packages:
+          pkg-manager: yarn
+
+      ## only install ecs-deploy-cli (call without yarn)
+      # - run:
+      #     name: Install ecs-deploy-cli
+      #     command: npm install --prefix=$HOME/.local --global poviolabs/spa-deploy-cli#v2
+
+
+      # Run tests/eslint
+      # - run: npm run task:eslint
+
+      - run: yarn run build
+
+      # RUN DEPLOY SCRIPT
+      #  add version and variables to header
+      #  create targeted invalidations
+      - run:
+          name: Deploy to S3
+          command: yarn spa-deploy-cli deploy
+
+      - run:
+          name: Slack message on success
+          command: yarn spa-deploy-cli slack --messageType success
+
+      - run:
+          name: Slack message on fail
+          command: yarn spa-deploy-cli slack --messageType failure
+          when: on_fail
+
+
+  myapp-dev:
+    <<: *build-and-deploy
+    environment:
+      STAGE: myapp-dev
+      # add variables to config.yaml
+      # add secrets to circleci environment
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+
+      - myapp-dev:
+          filters:
+            tags:
+              ignore: /.*/
+            branches:
+              only: myapp-dev
