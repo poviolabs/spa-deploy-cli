@@ -133,10 +133,9 @@ export const command: yargs.CommandModule = {
 
     cli.banner("Build Environment");
 
-    const buildPath = path.join(
-      pwd,
-      argv.config.spaDeploy?.buildPath || "dist"
-    );
+    const { spaDeploy, spaEnv, spaIndexGlob } = argv.config;
+
+    const buildPath = path.join(pwd, spaDeploy?.buildPath || "dist");
     cli.variable("app__buildPath", buildPath);
     if (!fs.lstatSync(buildPath).isDirectory()) {
       cli.error(`Build path ${buildPath} is not a directory.`);
@@ -156,7 +155,7 @@ export const command: yargs.CommandModule = {
     }
 
     const prodEnv: Record<string, string> = {
-      ...(argv.config.spaEnv ? argv.config.spaEnv : {}),
+      ...(spaEnv ? spaEnv : {}),
       APP_STAGE: stage,
       APP_VERSION: version,
       APP_RELEASE: release,
@@ -168,58 +167,65 @@ export const command: yargs.CommandModule = {
 
     cli.banner("Deploy Environment");
 
-    const awsRegion = argv.config.spaDeploy?.aws?.region;
+    const awsRegion = spaDeploy?.aws?.region;
     if (!awsRegion) {
       cli.error(`AWS Region is not set`);
       return process.exit(1);
     }
     cli.variable("app__aws__region", awsRegion);
 
-    if (argv.config.spaDeploy?.aws?.endpoint) {
-      cli.variable("app__aws__endpoint", argv.config.spaDeploy?.aws?.endpoint);
+    if (spaDeploy?.aws?.endpoint) {
+      cli.variable("app__aws__endpoint", spaDeploy?.aws?.endpoint);
     }
 
-    const deployBucket = argv.config.spaDeploy?.s3?.bucket;
+    const deployBucket = spaDeploy?.s3?.bucket;
     if (!deployBucket) {
       cli.error(`S3 Deploy Bucket is not set`);
       return process.exit(1);
+    } else {
+      cli.variable("app__s3__bucket", spaDeploy?.s3?.bucket);
     }
 
-    if (argv.config.spaDeploy?.s3?.prefix) {
-      cli.variable("app__s3__prefix", argv.config.spaDeploy?.s3?.prefix);
+    if (spaDeploy?.s3?.prefix) {
+      cli.variable("app__s3__prefix", spaDeploy?.s3?.prefix);
     }
 
     const s3Options = {
       region: awsRegion,
       bucket: deployBucket,
-      endpoint: argv.config.spaDeploy?.aws?.endpoint,
-      prefix: argv.config.spaDeploy?.s3?.prefix,
+      endpoint: spaDeploy?.aws?.endpoint,
+      prefix: spaDeploy?.s3?.prefix,
       force: argv.force,
       purge: argv.purge,
-      invalidateGlob: argv.config.spaDeploy?.s3?.invalidateGlob,
-      acl: argv.config.spaDeploy?.s3?.acl,
+      invalidateGlob: spaDeploy?.s3?.invalidateGlob,
+      acl: spaDeploy?.s3?.acl,
     };
 
-    // prepare sync plan
+    // s3 sync plan
     const plan = await prepareS3SyncPlan(
       {
         path: buildPath,
-        includeGlob: argv.config.spaDeploy?.includeGlob,
-        ignoreGlob: argv.config.spaDeploy?.ignoreGlob,
+        includeGlob: spaDeploy?.includeGlob,
+        ignoreGlob: spaDeploy?.ignoreGlob,
       },
       s3Options
     );
 
     // inject globals into index files
-    const indexFiles = argv.config.spaIndexGlob
-      ? micromatch(Object.keys(plan), argv.config.spaIndexGlob)
+    const indexFiles = spaIndexGlob
+      ? micromatch(Object.keys(plan), spaIndexGlob)
       : [];
     if (indexFiles.length > 0) {
-      const injectedData = `<script id="env-data">${Object.entries(prodEnv)
+      const injectedData = `<script id="env-data">\n${Object.entries(prodEnv)
         .map(([k, v]) => {
           return `window.${k}='${v}'`;
         })
-        .join(";")}</script>`;
+        .join(";\n")}\n</script>`;
+
+      if (verbose) {
+        banner(`S3 Index Injection`);
+        console.log(injectedData);
+      }
 
       for (const path of indexFiles) {
         plan[path].transformers = [
@@ -227,41 +233,24 @@ export const command: yargs.CommandModule = {
           (fileContents) => {
             return fileContents.replace(
               /<script id="env-data">[^<]*<\/script>/,
-              injectedData
+              injectedData.replace("\n", "")
             );
           },
         ];
       }
     }
 
+    // s3 sync plan
     banner(`S3 Sync Plan`);
     printS3SyncPlan(plan, true, verbose);
 
-    // cloudfront
-
-    let invalidatePaths: string[] = [];
-    if (argv.config.spaDeploy?.cloudfront?.invalidatePaths) {
-      if (Array.isArray(argv.config.spaDeploy?.cloudfront?.invalidatePaths)) {
-        invalidatePaths = argv.config.spaDeploy?.cloudfront?.invalidatePaths;
-      } else {
-        invalidatePaths = [argv.config.spaDeploy?.cloudfront?.invalidatePaths];
-      }
-    }
-
+    // cloudfront plan
     const cloudfrontInvalidations = prepareCloudfrontInvalidation(
       plan,
-      invalidatePaths
+      parseArray<string>(spaDeploy?.cloudfront?.invalidatePaths)
     );
 
-    let cloudfrontId = [];
-    if (argv.config.spaDeploy?.cloudfrontId) {
-      if (Array.isArray(argv.config.spaDeploy?.cloudfront?.distributionId)) {
-        cloudfrontId = argv.config.spaDeploy?.cloudfront?.distributionId;
-      } else {
-        cloudfrontId = [argv.config.spaDeploy?.cloudfront?.distributionId];
-      }
-    }
-
+    const cloudfrontId = parseArray<string>(spaDeploy?.cloudfrontId);
     if (cloudfrontInvalidations.length > 0) {
       banner(`Cloudfront invalidations`);
 
@@ -271,9 +260,7 @@ export const command: yargs.CommandModule = {
     }
 
     // deploy
-
     banner(`Deploy`);
-
     if (cloudfrontId.length < 1 && cloudfrontInvalidations.length > 0) {
       warning("No cloudfront set - will not invalidate cache!");
     }
@@ -299,3 +286,13 @@ export const command: yargs.CommandModule = {
     info("Done!");
   },
 };
+
+export function parseArray<T>(input: any): T[] {
+  if (input === undefined || input === null) {
+    return [];
+  }
+  if (Array.isArray(input)) {
+    return input;
+  }
+  return [input];
+}
