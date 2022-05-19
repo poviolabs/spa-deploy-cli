@@ -213,7 +213,7 @@ export const command: yargs.CommandModule = {
 
     // inject globals into index files
     const indexFiles = spaIndexGlob
-      ? micromatch(Object.keys(plan), spaIndexGlob)
+      ? plan.items.filter((x) => micromatch.isMatch(x.key, spaIndexGlob))
       : [];
     if (indexFiles.length > 0) {
       const injectedData = `<script id="env-data">\n${Object.entries(prodEnv)
@@ -227,9 +227,9 @@ export const command: yargs.CommandModule = {
         console.log(injectedData);
       }
 
-      for (const path of indexFiles) {
-        plan[path].transformers = [
-          ...(plan[path].transformers || []),
+      for (const item of indexFiles) {
+        item.transformers = [
+          ...(item.transformers || []),
           (fileContents) => {
             return fileContents.replace(
               /<script id="env-data">[^<]*<\/script>/,
@@ -273,7 +273,7 @@ export const command: yargs.CommandModule = {
     }
 
     // execute file sync
-    await executeS3SyncPlan(plan, s3Options);
+    await executeS3SyncPlan(plan);
 
     if (cloudfrontInvalidations.length > 0 && cloudfrontId.length > 0) {
       await executeCloudfrontInvalidation(
