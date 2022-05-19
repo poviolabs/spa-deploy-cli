@@ -256,13 +256,13 @@ export const command: yargs.CommandModule = {
       // < 0	 sort a before b
       // === 0	 keep original order of a and b
 
-      // cached items go first
-      if (a.cache && !b.cache) return 1;
-      if (!a.cache && b.cache) return -1;
-
       // sort by action
       if (sortAction[a.action] > sortAction[b.action]) return 1;
       if (sortAction[a.action] < sortAction[b.action]) return -1;
+
+      // cached items go first
+      if (a.cache && !b.cache) return 1;
+      if (!a.cache && b.cache) return -1;
 
       return 0;
     });
