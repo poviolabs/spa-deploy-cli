@@ -14,10 +14,10 @@ Examples:
 # Setup
 
 ```bash
-yarn add spa-deploy-cli@poviolabs/spa-deploy-cli#v1
+yarn add spa-deploy-cli@poviolabs/spa-deploy-cli#v2
 
 # update
-yarn up spa-deploy-cli@poviolabs/spa-deploy-cli
+yarn up spa-deploy-cli@poviolabs/spa-deploy-cli#v2
 ```
 
 ## Full config.yaml
