@@ -9,7 +9,7 @@ Features:
  - Uses the config.yaml structure
 
 Examples:
- - [React with CRA/Craco](./examples/react-craco)
+ - [Vue Basic](./examples/vue-basic)
 
 # Setup
 
@@ -22,7 +22,7 @@ yarn up spa-deploy-cli@poviolabs/spa-deploy-cli
 
 ## Full config.yaml
 
-Please see the [examples](./examples/react-craco/config.yaml) for sane defaults!
+Please see the [examples](./examples/vue-basic/config.yaml) for sane defaults!
 
 ```yaml
 
