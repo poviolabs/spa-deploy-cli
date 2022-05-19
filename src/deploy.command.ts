@@ -24,6 +24,7 @@ import {
   prepareS3SyncPlan,
   printS3SyncPlan,
 } from "~aws.helpers";
+import { SyncAction } from "~sync.helper";
 
 const { version: spaDeployVersion } = require("../package.json");
 
@@ -239,6 +240,32 @@ export const command: yargs.CommandModule = {
         ];
       }
     }
+
+    const sortAction: Record<SyncAction, number> = {
+      [SyncAction.unknown]: 0,
+      [SyncAction.unchanged]: 1,
+      [SyncAction.ignore]: 2,
+      [SyncAction.create]: 3,
+      [SyncAction.update]: 4,
+      [SyncAction.delete]: 5,
+    };
+
+    // sort deploy
+    plan.items.sort((a, b) => {
+      // > 0	 sort b before a
+      // < 0	 sort a before b
+      // === 0	 keep original order of a and b
+
+      // cached items go first
+      if (a.cache && !b.cache) return 1;
+      if (!a.cache && b.cache) return -1;
+
+      // sort by action
+      if (sortAction[a.action] > sortAction[b.action]) return 1;
+      if (sortAction[a.action] < sortAction[b.action]) return -1;
+
+      return 0;
+    });
 
     // s3 sync plan
     banner(`S3 Sync Plan`);

@@ -1,7 +1,7 @@
 stages:
   test:
     spaDeploy:
-      verbose: true
+      # verbose: true
       buildPath: "app"
       includeGlob: "**"
       # ignoreGlob:

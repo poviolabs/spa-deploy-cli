@@ -265,7 +265,6 @@ export async function executeS3SyncPlan(plan: S3SyncPlan) {
     endpoint,
   });
 
-  // todo order of importance / cache / index files
   // todo multi-threaded
   for (const item of items) {
     const {
