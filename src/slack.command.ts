@@ -24,10 +24,18 @@ class SlackOptions extends YargsOptions {
   @Option({ envAlias: "SERVICE" })
   service: string;
 
-  @Option({ envAlias: "SLACK_TOKEN", demandOption: true })
-  slackToken: string;
+  @Option({
+    envAlias: "SLACK_ACCESS_TOKEN",
 
-  @Option({ envAlias: "SLACK_CHANNEL", demandOption: true })
+    demandOption: true,
+  })
+  slackAccessToken: string;
+
+  @Option({
+    envAlias: "SLACK_CHANNEL",
+    configAlias: (c) => c.slackNotify?.channel,
+    demandOption: true,
+  })
   slackChannel: string;
 
   @Option({
@@ -109,9 +117,15 @@ export const command: yargs.CommandModule = {
     const { service, pwd } = argv;
     const commitMessage = await getCommitMessage(pwd);
 
-    const { appVersion, branchName, repoName, buildUrl, slackToken } = argv;
+    const {
+      appVersion,
+      branchName,
+      repoName,
+      buildUrl,
+      slackAccessToken,
+      slackChannel,
+    } = argv;
 
-    const slackChannel = argv.slackChannel || argv.config.slackNotify?.channel;
     const slackAutolinkPrefix = argv.config.slackNotify?.autolinkPrefix;
     const slackAutolinkTarget = argv.config.slackNotify?.autolinkTarget;
     const slackCommitPrefix = argv.config.slackNotify?.commitPrefix;
@@ -120,7 +134,7 @@ export const command: yargs.CommandModule = {
     const gitSha = await getSha(pwd);
     const gitShortSha = await getShortSha(pwd);
 
-    const web = new WebClient(slackToken);
+    const web = new WebClient(slackAccessToken);
 
     const templates = {
       success: {

@@ -310,17 +310,18 @@ export const command: yargs.CommandModule = {
       warning("No cloudfront set - will not invalidate cache!");
     }
 
-    if (!argv.ci) {
-      if (
-        !plan.items.some((x) =>
-          [SyncAction.create, SyncAction.update, SyncAction.delete].includes(
-            x.action
-          )
+    if (
+      !plan.items.some((x) =>
+        [SyncAction.create, SyncAction.update, SyncAction.delete].includes(
+          x.action
         )
-      ) {
-        cli.info("Nothing to do!");
-        return;
-      }
+      )
+    ) {
+      cli.info("Nothing to do!");
+      return;
+    }
+
+    if (!argv.ci) {
       if (!(await cli.confirm("Press enter to deploy..."))) {
         cli.info("Canceled");
         return;

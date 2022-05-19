@@ -2,11 +2,14 @@ import "reflect-metadata";
 import { Options } from "yargs";
 import path from "path";
 
-import { loadConfig, Config } from "~config.helper";
+import { loadConfig, Config, ConfigItem } from "~config.helper";
 import cli from "~cli.helper";
 
 interface IOptionProperties extends Options {
   envAlias?: string;
+  configAlias?: (
+    config: Config
+  ) => ConfigItem | string | number | string[] | any;
   envAliases?: string[];
 }
 
@@ -52,7 +55,9 @@ export function getYargsOptions<T>(target: any): Record<keyof T, Options> {
     a[property] = Object.fromEntries(
       Object.entries(options).filter(
         ([optionName, optionValue]) =>
-          !["envAlias", "default", "envAliases"].includes(optionName)
+          !["envAlias", "configAlias", "default", "envAliases"].includes(
+            optionName
+          )
       )
     );
     return a;
@@ -111,6 +116,13 @@ export function loadYargsConfig<T extends YargsOptions>(
 
       if (process.env[o.envAlias] !== undefined) {
         return process.env[o.envAlias];
+      }
+
+      if (o.configAlias !== undefined) {
+        const cfValue = o.configAlias(config);
+        if (cfValue !== undefined) {
+          return cfValue;
+        }
       }
 
       if (o.envAliases?.length > 0) {

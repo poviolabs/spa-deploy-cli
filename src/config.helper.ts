@@ -4,7 +4,7 @@ import path from "path";
 import { parse as parseDotenv } from "dotenv";
 import { parse as parseYAML } from "yaml";
 
-interface ConfigItem {
+export interface ConfigItem {
   [key: string]: ConfigItem | string | number | string[] | any;
 }
 export interface Config extends ConfigItem {
