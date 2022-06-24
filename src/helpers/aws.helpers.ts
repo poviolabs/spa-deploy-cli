@@ -14,6 +14,7 @@ import { GetCallerIdentityCommand, STSClient } from "@aws-sdk/client-sts";
 import { lookup } from "mime-types";
 import { isMatch } from "micromatch";
 import fs from "fs";
+
 import {
   LocalFile,
   scanLocal,
@@ -21,7 +22,8 @@ import {
   SyncAction,
   SyncActionColors,
 } from "./sync.helper";
-import { chk, info } from "./cli.helper";
+
+import { chk, logInfo } from "node-stage";
 
 function getCredentials() {
   if (process.env.AWS_PROFILE) {
@@ -81,16 +83,16 @@ export interface SyncS3Options {
 
 export interface S3File {
   key: string;
-  lastModified: Date;
+  lastModified: Date | undefined;
   eTag: string;
-  size: number;
+  size: number | undefined;
 }
 
 export async function* scanS3Files(
   client: S3Client,
   options: {
     bucket: string;
-    prefix: string;
+    prefix: string | undefined;
   }
 ) {
   for await (const data of paginateListObjectsV2(
@@ -147,6 +149,10 @@ export function printS3SyncPlan(
       if (action == SyncAction.unchanged) {
         continue;
       }
+    }
+
+    if (!action) {
+      throw new Error(`Action not defined for ${key}`);
     }
 
     const line = [
@@ -220,33 +226,43 @@ export async function prepareS3SyncPlan(
   })) {
     const action = s3Options.purge ? SyncAction.delete : SyncAction.unknown;
 
-    //if (localOptions.ignoreGlob && isMatch(file.Key, localOptions.ignoreGlob)) {
+    //if (localOptions.ignoreGlob && isMatch(key, localOptions.ignoreGlob)) {
     //  action = SyncAction.ignore;
     //}
 
-    itemsDict[file.Key] = {
-      key: file.Key,
+    if (!file.Key) {
+      throw new Error(`File Key not defined for ${JSON.stringify(file)}`);
+    }
+
+    const key = file.Key;
+
+    if (!file.ETag) {
+      throw new Error(`File Etag not defined for ${JSON.stringify(file)}`);
+    }
+
+    itemsDict[key] = {
+      key: key,
       remote: {
-        key: file.Key,
+        key: key,
         lastModified: file.LastModified,
         eTag: file.ETag.replace(/"/g, ""),
         size: file.Size,
       },
       action,
-      ...(itemsDict[file.Key] ? itemsDict[file.Key] : {}),
+      ...(itemsDict[key] ? itemsDict[key] : {}),
     };
 
-    if (itemsDict[file.Key].local) {
+    if (itemsDict[key].local) {
       if (
         !s3Options.force &&
-        itemsDict[file.Key].local.hash === itemsDict[file.Key].remote.eTag
+        itemsDict[key].local?.hash === itemsDict[key].remote?.eTag
       ) {
         // unchanged!
-        itemsDict[file.Key].action = SyncAction.unchanged;
+        itemsDict[key].action = SyncAction.unchanged;
       } else {
         // update
-        itemsDict[file.Key].invalidate = true;
-        itemsDict[file.Key].action = SyncAction.update;
+        itemsDict[key].invalidate = true;
+        itemsDict[key].action = SyncAction.update;
       }
     }
   }
@@ -282,7 +298,7 @@ export async function executeS3SyncPlan(plan: S3SyncPlan) {
     switch (action) {
       case SyncAction.create:
       case SyncAction.update: {
-        info(`Uploading ${key}`);
+        logInfo(`Uploading ${key}`);
         await client.send(
           new PutObjectCommand({
             Bucket: bucket,
@@ -291,13 +307,13 @@ export async function executeS3SyncPlan(plan: S3SyncPlan) {
             CacheControl: cacheControl,
             ContentType: contentType,
             ContentDisposition: contentDisposition,
-            Body: data !== undefined ? data : fs.readFileSync(local.path),
+            Body: data !== undefined ? data : fs.readFileSync(local!.path),
           })
         );
         break;
       }
       case SyncAction.delete: {
-        info(`Deleting ${key}`);
+        logInfo(`Deleting ${key}`);
         await client.send(
           new DeleteObjectCommand({
             Bucket: bucket,
@@ -321,10 +337,10 @@ export function prepareCloudfrontInvalidation(
   return [
     ...items.reduce((acc, item) => {
       if (item.invalidate) {
-        acc.push(`/${item.remote.key}`);
+        acc.push(`/${item.remote!.key}`);
       }
       return acc;
-    }, []),
+    }, [] as string[]),
     ...invalidatePaths,
   ];
 }
@@ -336,7 +352,7 @@ export async function executeCloudfrontInvalidation(
 ) {
   for (const DistributionId of distributionsId) {
     const client = getCloudfrontClientInstance({ region });
-    info(`Invalidating ${DistributionId}`);
+    logInfo(`Invalidating ${DistributionId}`);
     await client.send(
       new CreateInvalidationCommand({
         DistributionId,

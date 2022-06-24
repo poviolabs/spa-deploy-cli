@@ -6,7 +6,7 @@ Features:
  - Targeted CloudFront invalidation and caching
  - CircleCI, Bitbucket, and  GitHub Actions examples
  - Embedded Globals and Build uplifting ( dev -> stg -> prd )
- - Uses the config.yaml structure
+- Uses the [node-stage](https://github.com/poviolabs/node-stage) tool for configuration.
 
 Examples:
  - [Vue Basic](./examples/vue-basic)
@@ -60,13 +60,6 @@ stages:
       # APP_STAGE: automatic via stage
       # APP_VERSION: automatic via appVersion option
       # APP_RELEASE: automatic via git
-  
-    slackNotify:
-      channel: C03AXDS9F2B
-      autolinkPrefix: SP-
-      autolinkTarget: https://github.com/poviolabs/spa-deploy-cli/issues/
-      commitPrefix: https://github.com/poviolabs/spa-deploy-cli/commit/
-      projectName: SPA-Deploy
   
     ## dotenv overrides
     # envFiles: [ '.env.myapp-dev.secrets' ]
@@ -146,7 +139,7 @@ Display more output
 
 ```bash
 # test with ts-node
-yarn test:ts-node --help
+yarn test:ts-node:cli --help
 
 # build new version
 yarn build
@@ -154,9 +147,6 @@ yarn build
 # test build
 yarn test --help
 ```
-
-## Analyze package
-npx webpack-bundle-analyzer ./dist/stats.json
 
 ### Overriding config and global prefix
 

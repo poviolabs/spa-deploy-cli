@@ -8,15 +8,6 @@ import fs from "fs";
 import micromatch from "micromatch";
 import { createHash } from "crypto";
 
-import cli, { banner, info, variable, warning } from "~cli.helper";
-import { getGitChanges, getGitVersion, getRelease } from "~git.helper";
-import {
-  Option,
-  getYargsOptions,
-  loadYargsConfig,
-  Config,
-  YargsOptions,
-} from "~yargs.helper";
 import process from "process";
 import {
   executeCloudfrontInvalidation,
@@ -24,24 +15,40 @@ import {
   prepareCloudfrontInvalidation,
   prepareS3SyncPlan,
   printS3SyncPlan,
-} from "~aws.helpers";
-import { SyncAction } from "~sync.helper";
+} from "../helpers/aws.helpers";
+import { SyncAction } from "../helpers/sync.helper";
+import {
+  ReleaseStrategy,
+  Option,
+  getYargsOptions,
+  logWarning,
+  logError,
+  loadYargsConfig,
+  logInfo,
+  Config,
+  logVariable,
+  logBanner,
+  getToolEnvironment,
+  YargsOptions,
+  getGitChanges,
+  confirm,
+} from "node-stage";
 
-const { version: spaDeployVersion } = require("../package.json");
+import { getVersion } from "../helpers/version.helper";
 
-class SpaBuildOptions extends YargsOptions {
+class SpaBuildOptions implements YargsOptions {
   @Option({ envAlias: "PWD", demandOption: true })
-  pwd: string;
+  pwd!: string;
 
   @Option({ envAlias: "STAGE", demandOption: true })
-  stage: string;
+  stage!: string;
 
   @Option({
     envAlias: "RELEASE",
     envAliases: ["CIRCLE_SHA1", "BITBUCKET_COMMIT", "GITHUB_SHA"],
     demandOption: true,
   })
-  release: string;
+  release!: string;
 
   @Option({
     envAlias: "APP_VERSION",
@@ -49,31 +56,31 @@ class SpaBuildOptions extends YargsOptions {
     type: "string",
     alias: "ecsVersion",
   })
-  appVersion: string;
+  appVersion!: string;
 
   @Option({
     default: "gitsha",
     choices: ["gitsha", "gitsha-stage"],
     type: "string",
   })
-  releaseStrategy: "gitsha" | "gitsha-stage";
+  releaseStrategy!: ReleaseStrategy;
 
   @Option({ envAlias: "IGNORE_GIT_CHANGES" })
-  ignoreGitChanges: boolean;
+  ignoreGitChanges!: boolean;
 
   @Option({ describe: "Remove all undefined files from S3" })
-  purge: boolean;
+  purge!: boolean;
 
   @Option({ describe: "Replace all files even if not changed" })
-  force: boolean;
+  force!: boolean;
 
   @Option({ envAlias: "VERBOSE", default: false })
-  verbose: boolean;
+  verbose!: boolean;
 
   @Option({ envAlias: "CI" })
-  ci: boolean;
+  ci!: boolean;
 
-  config: Config;
+  config!: Config;
 }
 
 export const command: yargs.CommandModule = {
@@ -83,37 +90,33 @@ export const command: yargs.CommandModule = {
     return y
       .options(getYargsOptions(SpaBuildOptions))
       .middleware(async (_argv) => {
-        const argv = loadYargsConfig(
+        return (await loadYargsConfig(
           SpaBuildOptions,
           _argv as any,
           "spaDeploy"
-        );
-        argv.release =
-          argv.release || (await getRelease(argv.pwd, argv.releaseStrategy));
-
-        return argv as any;
+        )) as any;
       }, true);
   },
   handler: async (_argv) => {
     const argv = (await _argv) as unknown as SpaBuildOptions;
 
-    banner(`SPA Build ${spaDeployVersion}`);
+    logBanner(`SPA Build ${getVersion()}`);
 
     const pwd = argv.pwd;
-    variable("PWD", pwd);
-    variable("NODE_VERSION", process.version);
 
-    variable("GIT_CLI_VERSION", await getGitVersion(pwd));
+    for (const [k, v] of Object.entries(await getToolEnvironment(argv))) {
+      logVariable(k, v);
+    }
 
     const stage = argv.stage;
     if (stage) {
       // get current STAGE if set
       // CI would not use this for builds
-      variable("STAGE", argv.stage);
+      logVariable("STAGE", argv.stage);
     }
 
     if (!argv.ci) {
-      cli.info("Running Interactively");
+      logInfo("Running Interactively");
     }
 
     const verbose = !!argv.verbose;
@@ -121,32 +124,32 @@ export const command: yargs.CommandModule = {
     const gitChanges = await getGitChanges(pwd);
     if (gitChanges !== "") {
       if (argv.ignoreGitChanges) {
-        cli.warning("Changes detected in .git");
+        logWarning("Changes detected in .git");
       } else {
         if (gitChanges === undefined) {
-          cli.error("Error detecting Git");
+          logError("Error detecting Git");
         } else {
-          cli.banner("Detected Changes in Git - Stage must be clean to build!");
+          logBanner("Detected Changes in Git - Stage must be clean to build!");
           console.log(gitChanges);
         }
-        return process.exit(1);
+        process.exit(1);
       }
     }
 
-    cli.banner("Build Environment");
+    logBanner("Build Environment");
 
     const { spaDeploy, spaGlobals, spaIndexGlob } = argv.config;
 
     const buildPath = path.join(pwd, spaDeploy?.buildPath || "dist");
-    cli.variable("app__buildPath", buildPath);
+    logVariable("app__buildPath", buildPath);
     if (!fs.lstatSync(buildPath).isDirectory()) {
-      cli.error(`Build path ${buildPath} is not a directory.`);
+      logError(`Build path ${buildPath} is not a directory.`);
       return process.exit(1);
     }
 
     const release = argv.release;
 
-    cli.banner("App Environment");
+    logBanner("App Environment");
 
     let version = argv.appVersion;
     if (!version) {
@@ -164,32 +167,32 @@ export const command: yargs.CommandModule = {
     };
 
     for (const [k, v] of Object.entries(prodEnv)) {
-      cli.variable(k, v);
+      logVariable(k, v);
     }
 
-    cli.banner("Deploy Environment");
+    logBanner("Deploy Environment");
 
     const awsRegion = spaDeploy?.aws?.region;
     if (!awsRegion) {
-      cli.error(`AWS Region is not set`);
+      logError(`AWS Region is not set`);
       return process.exit(1);
     }
-    cli.variable("app__aws__region", awsRegion);
+    logVariable("app__aws__region", awsRegion);
 
     if (spaDeploy?.aws?.endpoint) {
-      cli.variable("app__aws__endpoint", spaDeploy?.aws?.endpoint);
+      logVariable("app__aws__endpoint", spaDeploy?.aws?.endpoint);
     }
 
     const deployBucket = spaDeploy?.s3?.bucket;
     if (!deployBucket) {
-      cli.error(`S3 Deploy Bucket is not set`);
+      logError(`S3 Deploy Bucket is not set`);
       return process.exit(1);
     } else {
-      cli.variable("app__s3__bucket", spaDeploy?.s3?.bucket);
+      logVariable("app__s3__bucket", spaDeploy?.s3?.bucket);
     }
 
     if (spaDeploy?.s3?.prefix) {
-      cli.variable("app__s3__prefix", spaDeploy?.s3?.prefix);
+      logVariable("app__s3__prefix", spaDeploy?.s3?.prefix);
     }
 
     const s3Options = {
@@ -227,7 +230,7 @@ export const command: yargs.CommandModule = {
       for (const item of indexFiles) {
         item.cache = false;
         item.cacheControl = "public, must-revalidate";
-        const data = fs.readFileSync(item.local.path, "utf-8");
+        const data = fs.readFileSync(item.local!.path, "utf-8");
 
         if (data.match('<script id="env-data">')) {
           item.data = data.replace(
@@ -235,12 +238,12 @@ export const command: yargs.CommandModule = {
             injectedData
           );
         } else if (data.match("</head>")) {
-          warning(
+          logWarning(
             `Could not find <script id="env-data"> in ${item.key}. Injecting at end of HEAD.`
           );
           item.data = data.replace(/<\/head>/, injectedData + `</head>`);
         } else {
-          warning(`Could not find injection point in ${item.key}`);
+          logWarning(`Could not find injection point in ${item.key}`);
           continue;
         }
         item.dataHash = createHash("md5").update(item.data).digest("hex");
@@ -273,8 +276,8 @@ export const command: yargs.CommandModule = {
       // === 0	 keep original order of a and b
 
       // sort by action
-      if (sortAction[a.action] > sortAction[b.action]) return 1;
-      if (sortAction[a.action] < sortAction[b.action]) return -1;
+      if (sortAction[a.action!] > sortAction[b.action!]) return 1;
+      if (sortAction[a.action!] < sortAction[b.action!]) return -1;
 
       // cached items go first
       if (a.cache && !b.cache) return -1;
@@ -284,7 +287,7 @@ export const command: yargs.CommandModule = {
     });
 
     // s3 sync plan
-    banner(`S3 Sync Plan`);
+    logBanner(`S3 Sync Plan`);
     printS3SyncPlan(plan, true, verbose);
 
     // cloudfront plan
@@ -297,7 +300,7 @@ export const command: yargs.CommandModule = {
       spaDeploy?.cloudfront?.distributionId
     );
     if (cloudfrontInvalidations.length > 0) {
-      banner(`Cloudfront invalidations`);
+      logBanner(`Cloudfront invalidations`);
 
       for (const i of cloudfrontInvalidations) {
         console.log(i);
@@ -305,25 +308,25 @@ export const command: yargs.CommandModule = {
     }
 
     // deploy
-    banner(`Deploy`);
+    logBanner(`Deploy`);
     if (cloudfrontId.length < 1 && cloudfrontInvalidations.length > 0) {
-      warning("No cloudfront set - will not invalidate cache!");
+      logWarning("No cloudfront set - will not invalidate cache!");
     }
 
     if (
       !plan.items.some((x) =>
         [SyncAction.create, SyncAction.update, SyncAction.delete].includes(
-          x.action
+          x.action!
         )
       )
     ) {
-      cli.info("Nothing to do!");
+      logInfo("Nothing to do!");
       return;
     }
 
     if (!argv.ci) {
-      if (!(await cli.confirm("Press enter to deploy..."))) {
-        cli.info("Canceled");
+      if (!(await confirm("Press enter to deploy..."))) {
+        logInfo("Canceled");
         return;
       }
     }
@@ -339,7 +342,7 @@ export const command: yargs.CommandModule = {
       );
     }
 
-    info("Done!");
+    logInfo("Done!");
   },
 };
 

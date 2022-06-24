@@ -1,11 +1,11 @@
 import path from "node:path";
 
-import { scanLocal } from "../src/sync.helper";
+import { scanLocal } from "../src/helpers/sync.helper";
 import {
   executeS3SyncPlan,
   prepareS3SyncPlan,
   printS3SyncPlan,
-} from "../src/aws.helpers";
+} from "../src/helpers/aws.helpers";
 
 process.env.AWS_ACCESS_KEY_ID = "foobar";
 process.env.AWS_SECRET_ACCESS_KEY = "foobar";

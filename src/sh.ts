@@ -3,31 +3,29 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { command as slackCommand } from "./slack.command";
-import * as cli from "~cli.helper";
+import { command as deployCommand } from "./commands/deploy.command";
+import { logError, logInfo } from "node-stage";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { version } = require("../package.json");
+import { getVersion } from "./helpers/version.helper";
 
 yargs(hideBin(process.argv))
-  .version(version)
+  .version(getVersion() || "unknown")
   .scriptName("spa-deploy-cli")
   .command(deployCommand)
-  .command(slackCommand)
   .help()
   .demandCommand(1)
   .strictCommands(true)
   .showHelpOnFail(true)
   .fail((msg, err, yargs) => {
-    if (msg) cli.error(msg);
+    if (msg) logError(msg);
     if (err) {
       if (!!process.env.VERBOSE) {
         console.error(err);
       } else {
-        cli.error(err.message);
+        logError(err.message);
       }
     }
-    cli.info("Use '--help' for more info");
+    logInfo("Use '--help' for more info");
     process.exit(1);
   })
   .parse();
