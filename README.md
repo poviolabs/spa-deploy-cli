@@ -103,27 +103,14 @@ yarn spa-deploy-cli deploy --stage myapp-stg --appVersion 0.0.1
 
 Descriptions for useful flags. Use `--help` for a comprehensive list
 
-### --pwd
-
-Root from where to fetch `config.yaml` and the base for all relative paths.
-
 ### --stage
 
 The slug of the deployment (ie. prd/stg/dev). Used in config.yaml.
-
-### --release 
-
-Release of the build (ie the git sha) and is unique per code.
 
 ### --appVersion
 
 Version of the deploy. Tied to a specific Release and Stage. 
 If supplied with a semver format, the version will be prefixed with `${STAGE}`
-
-### --releaseStrategy
-
-- gitsha - make the same build for all stages
-- gitsha-stage - make a build based on the stage and git sha in cases where the build is different per stage
 
 ### --ignoreGitChanges
 
@@ -146,11 +133,4 @@ yarn build
 
 # test build
 yarn test --help
-```
-
-### Overriding config and global prefix
-
-```yaml
-CONFIG_PREFIX=app
-CONFIG_FILE=config.yaml
 ```
