@@ -3,7 +3,6 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { command as deployCommand } from "./deploy.command";
 import { command as slackCommand } from "./slack.command";
 import * as cli from "~cli.helper";
 

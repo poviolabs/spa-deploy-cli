@@ -36,11 +36,11 @@ jobs:
 
       - run:
           name: Slack message on success
-          command: yarn spa-deploy-cli slack --messageType success
+          command: yarn slack-notify-cli --messageType success
 
       - run:
           name: Slack message on fail
-          command: yarn spa-deploy-cli slack --messageType failure
+          command: yarn slack-notify-cli --messageType failure
           when: on_fail
 
 

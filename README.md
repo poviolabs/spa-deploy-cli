@@ -140,22 +140,6 @@ Use this flag while debugging the build. This might have unintended consequences
 
 Display more output
 
-# spa-deploy-cli slack
-
-### --message
-
-Any text appended to the Slack message
-
-```
-yarn ecs-deploy-cli slack --messageType success --message A custom message!
-```
-
-### --messageType
-
-- `success`
-- `failure`
-- `info`
-
 # Development
 
 ## Test locally
