@@ -12,13 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2.1.0
+        uses: actions/checkout@v3
 
-      - name: Cache Dependencies
-        uses: actions/cache@v2
+      - name: Install Node.js
+        uses: actions/setup-node@v3
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          cache: yarn
+
+      - name: Install CLI tools
+        run: npm i --location=global spa-deploy-cli@poviolabs/spa-deploy-cli#v2 slack-notify-cli@poviolabs/slack-notify-cli#v1 --force
 
       - name: Install Dependencies
         run: yarn
@@ -30,14 +32,14 @@ jobs:
         run: >-
           AWS_ACCESS_KEY_ID=${{secrets.AWS_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}}
-          yarn spa-deploy-cli deploy
+          spa-deploy-cli deploy
 
       - name: Slack message on success
         run: >-
           APP_VERSION=$GITHUB_REF_NAME
           SLACK_ACCESS_TOKEN=${{secrets.SLACK_BOT_TOKEN}}
           BUILD_URL=${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
-          yarn slack-notify-cli --messageType success
+          slack-notify-cli --messageType success
 
       - name: Slack message on failure
         if: ${{ failure() }}
@@ -45,4 +47,4 @@ jobs:
           APP_VERSION=$GITHUB_REF_NAME
           SLACK_ACCESS_TOKEN=${{secrets.SLACK_BOT_TOKEN}}
           BUILD_URL=${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
-          yarn slack-notify-cli --messageType failure
+          slack-notify-cli --messageType failure
