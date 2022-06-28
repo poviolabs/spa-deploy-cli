@@ -16,10 +16,10 @@ jobs:
       - node/install-packages:
           pkg-manager: yarn
 
-      ## only install ecs-deploy-cli (call without yarn)
+      ## only install spa-deploy-cli (call without yarn)
       # - run:
-      #     name: Install ecs-deploy-cli
-      #     command: npm install --prefix=$HOME/.local --global poviolabs/spa-deploy-cli#v2
+      #     name: Install spa-deploy-cli
+      #     command: npm install --prefix=$HOME/.local --global spa-deploy-cli@poviolabs/spa-deploy-cli#v2
 
 
       # Run tests/eslint

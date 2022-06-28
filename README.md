@@ -20,6 +20,12 @@ yarn add spa-deploy-cli@poviolabs/spa-deploy-cli#v2
 yarn up spa-deploy-cli@poviolabs/spa-deploy-cli#v2
 ```
 
+or install globally 
+
+```bash
+npm i -g spa-deploy-cli@poviolabs/spa-deploy-cli#v2 --force
+```
+
 ## Full config.yaml
 
 Please see the [examples](./examples/vue-basic/config.yaml) for sane defaults!
