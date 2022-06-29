@@ -1,0 +1,50 @@
+name: SPA Deploy
+
+on:
+  push:
+    branches: ['main', 'dev', 'example_branch']
+
+env:
+  STAGE: myapp-dev
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          cache: yarn
+
+      - name: Install CLI tools
+        run: npm i --location=global spa-deploy-cli@poviolabs/spa-deploy-cli#v2 slack-notify-cli@poviolabs/slack-notify-cli#v1 --force
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Build Website
+        run: yarn build
+
+      - name: Deploy Website to S3
+        run: >-
+          AWS_ACCESS_KEY_ID=${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}}
+          spa-deploy-cli deploy
+
+      - name: Slack message on success
+        run: >-
+          APP_VERSION=$GITHUB_REF_NAME
+          SLACK_ACCESS_TOKEN=${{secrets.SLACK_BOT_TOKEN}}
+          BUILD_URL=${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+          slack-notify-cli --messageType success
+
+      - name: Slack message on failure
+        if: ${{ failure() }}
+        run: >-
+          APP_VERSION=$GITHUB_REF_NAME
+          SLACK_ACCESS_TOKEN=${{secrets.SLACK_BOT_TOKEN}}
+          BUILD_URL=${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+          slack-notify-cli --messageType failure
