@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
-    "slack-notify-cli": "poviolabs/slack-notify-cli#v1",
+    "slack-notify-cli": "poviolabs/slack-notify-cli#v2",
     "vue": "^3.2.13"
   },
   "devDependencies": {

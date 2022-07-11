@@ -38,7 +38,6 @@ import {
   printS3SyncPlan,
 } from "../helpers/aws.helpers";
 import { SyncAction } from "../helpers/sync.helper";
-
 import { getVersion } from "../helpers/version.helper";
 
 class SpaBuildOptions implements YargsOptions {

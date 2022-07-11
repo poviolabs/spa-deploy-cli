@@ -6323,21 +6323,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-stage@poviolabs/node-stage#v1":
-  version: 1.1.0
-  resolution: "node-stage@https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc"
+"node-stage@poviolabs/node-stage#v2":
+  version: 2.0.1
+  resolution: "node-stage@https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"
   dependencies:
-    chalk: ^4.1.2
     dotenv: ^16.0.1
-    prompt-sync: ^4.2.0
     reflect-metadata: ^0.1.13
-    semver: ^7.3.7
-    simple-git: ^3.9.0
     yaml: ^2.1.1
+  peerDependencies:
+    chalk: ^4.1.2
+    prompt-sync: ^4.2.0
+    simple-git: ^3.9.0
     yargs: ^17.5.1
+  peerDependenciesMeta:
+    chalk:
+      optional: true
+    prompt-sync:
+      optional: true
+    simple-git:
+      optional: true
+    yargs:
+      optional: true
   bin:
     node-stage: ./dist/sh.js
-  checksum: aeb0fc05e732dc479668c57360c15fd8095cfd04ea947cfb1cf7959fd5a88898cb599bdd3233ea6e7c3560c667670a80bff4d99210995a646ea493ba0059f36a
+  checksum: 63b5965aeaf69c1336ec03dc9531991d0975584fc30bba3427fecaa9b849bf09d0f3d53ed1b734ce6ad5593dc643ed2016a21f9c49fe375bc0e01167f78f17ad
   languageName: node
   linkType: hard
 
@@ -7723,7 +7732,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.2.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7":
+"semver@npm:^7.2.1, semver@npm:^7.3.4, semver@npm:^7.3.5":
   version: 7.3.7
   resolution: "semver@npm:7.3.7"
   dependencies:
@@ -7900,16 +7909,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"slack-notify-cli@poviolabs/slack-notify-cli#v1":
-  version: 1.1.3
-  resolution: "slack-notify-cli@https://github.com/poviolabs/slack-notify-cli.git#commit=62ab3d12eb806a283e8e07a58729a8431e135609"
+"slack-notify-cli@poviolabs/slack-notify-cli#v2":
+  version: 2.0.1
+  resolution: "slack-notify-cli@https://github.com/poviolabs/slack-notify-cli.git#commit=d0066bfa28870a1a321a8d273dbe666b98d3f189"
   dependencies:
     "@slack/web-api": ^6.7.2
-    node-stage: "poviolabs/node-stage#v1"
+    chalk: ^4.1.2
+    node-stage: "poviolabs/node-stage#v2"
+    prompt-sync: ^4.2.0
+    simple-git: ^3.9.0
     yargs: ^17.5.1
   bin:
     slack-notify-cli: ./dist/sh.js
-  checksum: ccee8f9e7a00efd4cb688b41fab0fef1674d4769c4b926de554fe5cb69757a3248ec657e610f714eddaf454a7581af1ce24e74a8051c68f99d1b4fca95bf970d
+  checksum: 0d2c489b7d2f8037911e2f36b9085703b6e867f91589143a2e78b99a2022a3f57fffbe593c1240ff7caf1343b2ec4373a6b7a8695e2c8b559267d22f26a1b8ea
   languageName: node
   linkType: hard
 
@@ -8636,7 +8648,7 @@ __metadata:
     core-js: ^3.8.3
     eslint: ^7.32.0
     eslint-plugin-vue: ^8.0.3
-    slack-notify-cli: "poviolabs/slack-notify-cli#v1"
+    slack-notify-cli: "poviolabs/slack-notify-cli#v2"
     vue: ^3.2.13
   languageName: unknown
   linkType: soft

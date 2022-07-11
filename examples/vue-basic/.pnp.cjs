@@ -41,7 +41,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["core-js", "npm:3.22.5"],\
             ["eslint", "npm:7.32.0"],\
             ["eslint-plugin-vue", "virtual:68b66128f54e72a60814cd6cf1d3f32a5c38cd21a578fdb08eccd8de501da2c33ae0427ac4bbe32935fc25300f5760c0596af632552868693aabae01458feec0#npm:8.7.1"],\
-            ["slack-notify-cli", "https://github.com/poviolabs/slack-notify-cli.git#commit=62ab3d12eb806a283e8e07a58729a8431e135609"],\
+            ["slack-notify-cli", "https://github.com/poviolabs/slack-notify-cli.git#commit=d0066bfa28870a1a321a8d273dbe666b98d3f189"],\
             ["vue", "npm:3.2.34"]\
           ],\
           "linkType": "SOFT"\
@@ -8641,18 +8641,38 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["node-stage", [\
-        ["https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc", {\
-          "packageLocation": "./.yarn/cache/node-stage-https-344cfc6eee-aeb0fc05e7.zip/node_modules/node-stage/",\
+        ["https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3", {\
+          "packageLocation": "./.yarn/cache/node-stage-https-d80710c287-63b5965aea.zip/node_modules/node-stage/",\
           "packageDependencies": [\
-            ["node-stage", "https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc"],\
+            ["node-stage", "https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:6a0caf603edd12633890b46b28b7f9b72a29b58808974604d5a3e8ba0529461754702f7a32ec40bf3656b04fcf231374d01520b0baaff194ecc1f3e5d3d5b409#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3", {\
+          "packageLocation": "./.yarn/__virtual__/node-stage-virtual-d163b8497e/0/cache/node-stage-https-d80710c287-63b5965aea.zip/node_modules/node-stage/",\
+          "packageDependencies": [\
+            ["node-stage", "virtual:6a0caf603edd12633890b46b28b7f9b72a29b58808974604d5a3e8ba0529461754702f7a32ec40bf3656b04fcf231374d01520b0baaff194ecc1f3e5d3d5b409#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"],\
+            ["@types/chalk", null],\
+            ["@types/prompt-sync", null],\
+            ["@types/simple-git", null],\
+            ["@types/yargs", null],\
             ["chalk", "npm:4.1.2"],\
             ["dotenv", "npm:16.0.1"],\
             ["prompt-sync", "npm:4.2.0"],\
             ["reflect-metadata", "npm:0.1.13"],\
-            ["semver", "npm:7.3.7"],\
             ["simple-git", "npm:3.9.0"],\
             ["yaml", "npm:2.1.1"],\
             ["yargs", "npm:17.5.1"]\
+          ],\
+          "packagePeers": [\
+            "@types/chalk",\
+            "@types/prompt-sync",\
+            "@types/simple-git",\
+            "@types/yargs",\
+            "chalk",\
+            "prompt-sync",\
+            "simple-git",\
+            "yargs"\
           ],\
           "linkType": "HARD"\
         }]\
@@ -10756,12 +10776,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["slack-notify-cli", [\
-        ["https://github.com/poviolabs/slack-notify-cli.git#commit=62ab3d12eb806a283e8e07a58729a8431e135609", {\
-          "packageLocation": "./.yarn/cache/slack-notify-cli-https-31c6f566cb-ccee8f9e7a.zip/node_modules/slack-notify-cli/",\
+        ["https://github.com/poviolabs/slack-notify-cli.git#commit=d0066bfa28870a1a321a8d273dbe666b98d3f189", {\
+          "packageLocation": "./.yarn/cache/slack-notify-cli-https-6a0caf603e-0d2c489b7d.zip/node_modules/slack-notify-cli/",\
           "packageDependencies": [\
-            ["slack-notify-cli", "https://github.com/poviolabs/slack-notify-cli.git#commit=62ab3d12eb806a283e8e07a58729a8431e135609"],\
+            ["slack-notify-cli", "https://github.com/poviolabs/slack-notify-cli.git#commit=d0066bfa28870a1a321a8d273dbe666b98d3f189"],\
             ["@slack/web-api", "npm:6.7.2"],\
-            ["node-stage", "https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc"],\
+            ["chalk", "npm:4.1.2"],\
+            ["node-stage", "virtual:6a0caf603edd12633890b46b28b7f9b72a29b58808974604d5a3e8ba0529461754702f7a32ec40bf3656b04fcf231374d01520b0baaff194ecc1f3e5d3d5b409#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"],\
+            ["prompt-sync", "npm:4.2.0"],\
+            ["simple-git", "npm:3.9.0"],\
             ["yargs", "npm:17.5.1"]\
           ],\
           "linkType": "HARD"\
@@ -11633,7 +11656,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["core-js", "npm:3.22.5"],\
             ["eslint", "npm:7.32.0"],\
             ["eslint-plugin-vue", "virtual:68b66128f54e72a60814cd6cf1d3f32a5c38cd21a578fdb08eccd8de501da2c33ae0427ac4bbe32935fc25300f5760c0596af632552868693aabae01458feec0#npm:8.7.1"],\
-            ["slack-notify-cli", "https://github.com/poviolabs/slack-notify-cli.git#commit=62ab3d12eb806a283e8e07a58729a8431e135609"],\
+            ["slack-notify-cli", "https://github.com/poviolabs/slack-notify-cli.git#commit=d0066bfa28870a1a321a8d273dbe666b98d3f189"],\
             ["vue", "npm:3.2.34"]\
           ],\
           "linkType": "SOFT"\
