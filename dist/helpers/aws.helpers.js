@@ -13,7 +13,8 @@ const mime_types_1 = require("mime-types");
 const micromatch_1 = require("micromatch");
 const fs_1 = __importDefault(require("fs"));
 const sync_helper_1 = require("./sync.helper");
-const node_stage_1 = require("node-stage");
+const cli_1 = require("node-stage/cli");
+const chalk_1 = require("node-stage/chalk");
 function getCredentials() {
     if (process.env.AWS_PROFILE) {
         return (0, credential_provider_ini_1.fromIni)();
@@ -77,7 +78,7 @@ function printS3SyncPlan(plan, print = true, verbose = false) {
         const line = [
             sync_helper_1.SyncActionColors[action](action.padEnd(9, " ")),
             [
-                invalidate ? node_stage_1.chk.magenta("Invalidate") : "          ",
+                invalidate ? chalk_1.chk.magenta("Invalidate") : "          ",
                 cache ? (action == sync_helper_1.SyncAction.unchanged ? "Cached" : "Cache") : "     ",
                 data !== undefined ? "DATA  " : "      ",
                 // local?.hash,
@@ -190,7 +191,7 @@ async function executeS3SyncPlan(plan) {
         switch (action) {
             case sync_helper_1.SyncAction.create:
             case sync_helper_1.SyncAction.update: {
-                (0, node_stage_1.logInfo)(`Uploading ${key}`);
+                (0, cli_1.logInfo)(`Uploading ${key}`);
                 await client.send(new client_s3_1.PutObjectCommand({
                     Bucket: bucket,
                     Key: key,
@@ -203,7 +204,7 @@ async function executeS3SyncPlan(plan) {
                 break;
             }
             case sync_helper_1.SyncAction.delete: {
-                (0, node_stage_1.logInfo)(`Deleting ${key}`);
+                (0, cli_1.logInfo)(`Deleting ${key}`);
                 await client.send(new client_s3_1.DeleteObjectCommand({
                     Bucket: bucket,
                     Key: key,
@@ -233,7 +234,7 @@ exports.prepareCloudfrontInvalidation = prepareCloudfrontInvalidation;
 async function executeCloudfrontInvalidation(invalidations, distributionsId, region) {
     for (const DistributionId of distributionsId) {
         const client = getCloudfrontClientInstance({ region });
-        (0, node_stage_1.logInfo)(`Invalidating ${DistributionId}`);
+        (0, cli_1.logInfo)(`Invalidating ${DistributionId}`);
         await client.send(new client_cloudfront_1.CreateInvalidationCommand({
             DistributionId,
             InvalidationBatch: {

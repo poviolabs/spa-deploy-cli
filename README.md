@@ -14,16 +14,16 @@ Examples:
 # Setup
 
 ```bash
-yarn add spa-deploy-cli@poviolabs/spa-deploy-cli#v2
+yarn add spa-deploy-cli@poviolabs/spa-deploy-cli#v3
 
 # update
-yarn up spa-deploy-cli@poviolabs/spa-deploy-cli#v2
+yarn up spa-deploy-cli@poviolabs/spa-deploy-cli#v3
 ```
 
 or install globally 
 
 ```bash
-npm i -g spa-deploy-cli@poviolabs/spa-deploy-cli#v2 --force
+npm i -g spa-deploy-cli@poviolabs/spa-deploy-cli#v3 --force
 ```
 
 ## Full config.yaml

@@ -8,7 +8,7 @@ const fast_glob_1 = require("fast-glob");
 const crypto_1 = require("crypto");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const node_stage_1 = require("node-stage");
+const chalk_1 = require("node-stage/chalk");
 var SyncAction;
 (function (SyncAction) {
     SyncAction["unknown"] = "Unknown";
@@ -19,12 +19,12 @@ var SyncAction;
     SyncAction["create"] = "Create";
 })(SyncAction = exports.SyncAction || (exports.SyncAction = {}));
 exports.SyncActionColors = {
-    [SyncAction.unknown]: node_stage_1.chk.yellow,
-    [SyncAction.unchanged]: node_stage_1.chk.reset,
-    [SyncAction.ignore]: node_stage_1.chk.reset,
-    [SyncAction.delete]: node_stage_1.chk.red,
-    [SyncAction.update]: node_stage_1.chk.magenta,
-    [SyncAction.create]: node_stage_1.chk.magenta,
+    [SyncAction.unknown]: chalk_1.chk.yellow,
+    [SyncAction.unchanged]: chalk_1.chk.reset,
+    [SyncAction.ignore]: chalk_1.chk.reset,
+    [SyncAction.delete]: chalk_1.chk.red,
+    [SyncAction.update]: chalk_1.chk.magenta,
+    [SyncAction.create]: chalk_1.chk.magenta,
 };
 async function* scanLocal(options) {
     for await (const entry of (0, fast_glob_1.sync)(options.includeGlob || ["**"], {

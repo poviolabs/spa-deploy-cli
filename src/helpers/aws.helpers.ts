@@ -23,7 +23,8 @@ import {
   SyncActionColors,
 } from "./sync.helper";
 
-import { chk, logInfo } from "node-stage";
+import { logInfo } from "node-stage/cli";
+import { chk } from "node-stage/chalk";
 
 function getCredentials() {
   if (process.env.AWS_PROFILE) {

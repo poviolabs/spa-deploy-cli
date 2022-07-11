@@ -19,7 +19,7 @@ jobs:
       ## only install spa-deploy-cli (call without yarn)
       # - run:
       #     name: Install spa-deploy-cli
-      #     command: npm install --prefix=$HOME/.local --global spa-deploy-cli@poviolabs/spa-deploy-cli#v2
+      #     command: npm install --prefix=$HOME/.local --global spa-deploy-cli@poviolabs/spa-deploy-cli#v3
 
 
       # Run tests/eslint

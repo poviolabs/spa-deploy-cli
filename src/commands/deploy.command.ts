@@ -7,8 +7,29 @@ import path from "path";
 import fs from "fs";
 import micromatch from "micromatch";
 import { createHash } from "crypto";
-
 import process from "process";
+
+import { ReleaseStrategy, Config } from "node-stage";
+import {
+  logWarning,
+  logError,
+  logInfo,
+  logVariable,
+  logBanner,
+  getToolEnvironment,
+  confirm,
+} from "node-stage/cli";
+import { getGitChanges } from "node-stage/git";
+import {
+  Option,
+  getYargsOptions,
+  loadYargsConfig,
+  YargsOptions,
+} from "node-stage/yargs";
+import {
+  loadColors
+} from "node-stage/chalk";
+
 import {
   executeCloudfrontInvalidation,
   executeS3SyncPlan,
@@ -17,22 +38,6 @@ import {
   printS3SyncPlan,
 } from "../helpers/aws.helpers";
 import { SyncAction } from "../helpers/sync.helper";
-import {
-  ReleaseStrategy,
-  Option,
-  getYargsOptions,
-  logWarning,
-  logError,
-  loadYargsConfig,
-  logInfo,
-  Config,
-  logVariable,
-  logBanner,
-  getToolEnvironment,
-  YargsOptions,
-  getGitChanges,
-  confirm,
-} from "node-stage";
 
 import { getVersion } from "../helpers/version.helper";
 
@@ -99,6 +104,8 @@ export const command: yargs.CommandModule = {
   },
   handler: async (_argv) => {
     const argv = (await _argv) as unknown as SpaBuildOptions;
+
+    await loadColors();
 
     logBanner(`SPA Build ${getVersion()}`);
 

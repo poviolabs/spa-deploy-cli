@@ -53,6 +53,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/yargs", "npm:17.0.10"],\
             ["@typescript-eslint/eslint-plugin", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:5.29.0"],\
             ["@typescript-eslint/parser", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:5.29.0"],\
+            ["chalk", "npm:4.1.2"],\
             ["eslint", "npm:8.18.0"],\
             ["eslint-config-prettier", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:8.5.0"],\
             ["eslint-plugin-import-helpers", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:1.2.1"],\
@@ -61,8 +62,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:28.1.1"],\
             ["micromatch", "npm:4.0.5"],\
             ["mime-types", "npm:2.1.35"],\
-            ["node-stage", "https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc"],\
+            ["node-stage", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"],\
             ["prettier", "npm:2.7.1"],\
+            ["prompt-sync", "npm:4.2.0"],\
+            ["semver", "npm:7.3.7"],\
+            ["simple-git", "npm:3.10.0"],\
             ["source-map-support", "npm:0.5.21"],\
             ["ts-jest", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:28.0.5"],\
             ["ts-node", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:10.8.1"],\
@@ -2985,6 +2989,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/yargs", "npm:17.0.10"],\
             ["@typescript-eslint/eslint-plugin", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:5.29.0"],\
             ["@typescript-eslint/parser", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:5.29.0"],\
+            ["chalk", "npm:4.1.2"],\
             ["eslint", "npm:8.18.0"],\
             ["eslint-config-prettier", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:8.5.0"],\
             ["eslint-plugin-import-helpers", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:1.2.1"],\
@@ -2993,8 +2998,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:28.1.1"],\
             ["micromatch", "npm:4.0.5"],\
             ["mime-types", "npm:2.1.35"],\
-            ["node-stage", "https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc"],\
+            ["node-stage", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"],\
             ["prettier", "npm:2.7.1"],\
+            ["prompt-sync", "npm:4.2.0"],\
+            ["semver", "npm:7.3.7"],\
+            ["simple-git", "npm:3.10.0"],\
             ["source-map-support", "npm:0.5.21"],\
             ["ts-jest", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:28.0.5"],\
             ["ts-node", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#npm:10.8.1"],\
@@ -3828,10 +3836,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "HARD"\
         }],\
-        ["npm:4.1.0", {\
-          "packageLocation": "./.yarn/cache/ansi-regex-npm-4.1.0-4a7d8413fe-97aa465953.zip/node_modules/ansi-regex/",\
+        ["npm:4.1.1", {\
+          "packageLocation": "./.yarn/cache/ansi-regex-npm-4.1.1-af0a582bb9-b1a6ee44cb.zip/node_modules/ansi-regex/",\
           "packageDependencies": [\
-            ["ansi-regex", "npm:4.1.0"]\
+            ["ansi-regex", "npm:4.1.1"]\
           ],\
           "linkType": "HARD"\
         }],\
@@ -6925,18 +6933,38 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["node-stage", [\
-        ["https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc", {\
-          "packageLocation": "./.yarn/cache/node-stage-https-344cfc6eee-aeb0fc05e7.zip/node_modules/node-stage/",\
+        ["https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3", {\
+          "packageLocation": "./.yarn/cache/node-stage-https-d80710c287-63b5965aea.zip/node_modules/node-stage/",\
           "packageDependencies": [\
-            ["node-stage", "https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc"],\
+            ["node-stage", "https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3", {\
+          "packageLocation": "./.yarn/__virtual__/node-stage-virtual-df8f63366c/0/cache/node-stage-https-d80710c287-63b5965aea.zip/node_modules/node-stage/",\
+          "packageDependencies": [\
+            ["node-stage", "virtual:165a837a0e6b4192e4cdc61e807dfde8baf7aecefee25f85a4f7c8131d6cb9380aa0454ad4e209ff3e42b3959a33b5cd99972497d91e24e983d60c30f1dbf635#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"],\
+            ["@types/chalk", null],\
+            ["@types/prompt-sync", null],\
+            ["@types/simple-git", null],\
+            ["@types/yargs", "npm:17.0.10"],\
             ["chalk", "npm:4.1.2"],\
             ["dotenv", "npm:16.0.1"],\
             ["prompt-sync", "npm:4.2.0"],\
             ["reflect-metadata", "npm:0.1.13"],\
-            ["semver", "npm:7.3.7"],\
-            ["simple-git", "npm:3.9.0"],\
+            ["simple-git", "npm:3.10.0"],\
             ["yaml", "npm:2.1.1"],\
             ["yargs", "npm:17.5.1"]\
+          ],\
+          "packagePeers": [\
+            "@types/chalk",\
+            "@types/prompt-sync",\
+            "@types/simple-git",\
+            "@types/yargs",\
+            "chalk",\
+            "prompt-sync",\
+            "simple-git",\
+            "yargs"\
           ],\
           "linkType": "HARD"\
         }]\
@@ -7551,10 +7579,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["simple-git", [\
-        ["npm:3.9.0", {\
-          "packageLocation": "./.yarn/cache/simple-git-npm-3.9.0-ea0fb9afa1-58a2665e03.zip/node_modules/simple-git/",\
+        ["npm:3.10.0", {\
+          "packageLocation": "./.yarn/cache/simple-git-npm-3.10.0-3041714c34-167a6c4b26.zip/node_modules/simple-git/",\
           "packageDependencies": [\
-            ["simple-git", "npm:3.9.0"],\
+            ["simple-git", "npm:3.10.0"],\
             ["@kwsites/file-exists", "npm:1.1.1"],\
             ["@kwsites/promise-deferred", "npm:1.1.1"],\
             ["debug", "virtual:1f3c51be25fef20e854261431be23d317093b3b463e81e911f4f45a636ff582620db066c9d2a5922a428e07e10fe4788eee8196c796ce2c9bd49d22743fec207#npm:4.3.4"]\
@@ -7767,7 +7795,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/strip-ansi-npm-5.2.0-275214c316-bdb5f76ade.zip/node_modules/strip-ansi/",\
           "packageDependencies": [\
             ["strip-ansi", "npm:5.2.0"],\
-            ["ansi-regex", "npm:4.1.0"]\
+            ["ansi-regex", "npm:4.1.1"]\
           ],\
           "linkType": "HARD"\
         }],\

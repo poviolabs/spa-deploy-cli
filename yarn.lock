@@ -2223,6 +2223,7 @@ __metadata:
     "@types/yargs": ^17.0.10
     "@typescript-eslint/eslint-plugin": ^5.29.0
     "@typescript-eslint/parser": ^5.29.0
+    chalk: ^4.1.2
     eslint: ^8.18.0
     eslint-config-prettier: ^8.5.0
     eslint-plugin-import-helpers: ^1.2.1
@@ -2231,8 +2232,11 @@ __metadata:
     jest: ^28.1.1
     micromatch: ^4.0.5
     mime-types: ^2.1.35
-    node-stage: "poviolabs/node-stage#v1"
+    node-stage: "poviolabs/node-stage#v2"
     prettier: ^2.7.1
+    prompt-sync: ^4.2.0
+    semver: ^7.3.7
+    simple-git: ^3.10.0
     source-map-support: ^0.5.21
     ts-jest: ^28.0.5
     ts-node: ^10.8.1
@@ -2904,9 +2908,9 @@ __metadata:
   linkType: hard
 
 "ansi-regex@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "ansi-regex@npm:4.1.0"
-  checksum: 97aa4659538d53e5e441f5ef2949a3cffcb838e57aeaad42c4194e9d7ddb37246a6526c4ca85d3940a9d1e19b11cc2e114530b54c9d700c8baf163c31779baf8
+  version: 4.1.1
+  resolution: "ansi-regex@npm:4.1.1"
+  checksum: b1a6ee44cb6ecdabaa770b2ed500542714d4395d71c7e5c25baa631f680fb2ad322eb9ba697548d498a6fd366949fc8b5bfcf48d49a32803611f648005b01888
   languageName: node
   linkType: hard
 
@@ -5521,21 +5525,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-stage@poviolabs/node-stage#v1":
-  version: 1.1.0
-  resolution: "node-stage@https://github.com/poviolabs/node-stage.git#commit=37d09c1ad48b734fc3af928d2ecb698e9d9508cc"
+"node-stage@poviolabs/node-stage#v2":
+  version: 2.0.1
+  resolution: "node-stage@https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"
   dependencies:
-    chalk: ^4.1.2
     dotenv: ^16.0.1
-    prompt-sync: ^4.2.0
     reflect-metadata: ^0.1.13
-    semver: ^7.3.7
-    simple-git: ^3.9.0
     yaml: ^2.1.1
+  peerDependencies:
+    chalk: ^4.1.2
+    prompt-sync: ^4.2.0
+    simple-git: ^3.9.0
     yargs: ^17.5.1
+  peerDependenciesMeta:
+    chalk:
+      optional: true
+    prompt-sync:
+      optional: true
+    simple-git:
+      optional: true
+    yargs:
+      optional: true
   bin:
     node-stage: ./dist/sh.js
-  checksum: aeb0fc05e732dc479668c57360c15fd8095cfd04ea947cfb1cf7959fd5a88898cb599bdd3233ea6e7c3560c667670a80bff4d99210995a646ea493ba0059f36a
+  checksum: 63b5965aeaf69c1336ec03dc9531991d0975584fc30bba3427fecaa9b849bf09d0f3d53ed1b734ce6ad5593dc643ed2016a21f9c49fe375bc0e01167f78f17ad
   languageName: node
   linkType: hard
 
@@ -6078,14 +6091,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-git@npm:^3.9.0":
-  version: 3.9.0
-  resolution: "simple-git@npm:3.9.0"
+"simple-git@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "simple-git@npm:3.10.0"
   dependencies:
     "@kwsites/file-exists": ^1.1.1
     "@kwsites/promise-deferred": ^1.1.1
     debug: ^4.3.4
-  checksum: 58a2665e03b08f766461379d68a1bec1730582da24721ecf761aeb1d391d7f3fb286fa1bbf3f64056deb4b8e09fff0d7c9e4054e1e509560f0b9896c4a30604b
+  checksum: 167a6c4b2634bfcc4353a87ccbd7f66ecffa9111990341f7208614e70750f7b920c8858202dd8a535e4534f7539e0d94e89704a2d98cff47002f7dc989a4075f
   languageName: node
   linkType: hard
 
