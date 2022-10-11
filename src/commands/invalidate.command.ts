@@ -1,5 +1,5 @@
 /*
-  Deploy files to S3
+  Invalidate Cloudfront distribution
  */
 
 import yargs from "yargs";
