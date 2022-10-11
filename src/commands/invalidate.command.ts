@@ -1,5 +1,5 @@
 /*
-  Invalidate Cloudfront distribution
+  Invalidate CloudFront distribution
  */
 
 import yargs from "yargs";
@@ -129,7 +129,7 @@ export const command: yargs.CommandModule = {
 
 
         if (cloudfrontInvalidations.length > 0) {
-            logBanner(`Cloudfront invalidations`);
+            logBanner(`CloudFront invalidations`);
 
             for (const i of cloudfrontInvalidations) {
                 logInfo(i);

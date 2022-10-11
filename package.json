@@ -1,6 +1,6 @@
 {
   "name": "@poviolabs/spa-deploy-cli",
-  "version": "3.0.4",
+  "version": "3.0.2",
   "packageManager": "yarn@3.2.1",
   "bin": "./dist/sh.js",
   "scripts": {

@@ -1,6 +1,6 @@
 "use strict";
 /*
-  Invalidate Cloudfront distribution
+  Invalidate CloudFront distribution
  */
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -105,7 +105,7 @@ exports.command = {
             cloudfrontInvalidations.push('/*');
         }
         if (cloudfrontInvalidations.length > 0) {
-            (0, cli_1.logBanner)(`Cloudfront invalidations`);
+            (0, cli_1.logBanner)(`CloudFront invalidations`);
             for (const i of cloudfrontInvalidations) {
                 (0, cli_1.logInfo)(i);
             }
