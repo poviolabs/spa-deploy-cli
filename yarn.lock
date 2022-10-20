@@ -192,7 +192,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.117.0":
+"@aws-sdk/client-s3@npm:3.117.0":
   version: 3.117.0
   resolution: "@aws-sdk/client-s3@npm:3.117.0"
   dependencies:
@@ -2204,7 +2204,7 @@ __metadata:
   resolution: "@poviolabs/spa-deploy-cli@workspace:."
   dependencies:
     "@aws-sdk/client-cloudfront": ^3.112.0
-    "@aws-sdk/client-s3": ^3.117.0
+    "@aws-sdk/client-s3": 3.117.0
     "@aws-sdk/client-sts": ^3.112.0
     "@aws-sdk/credential-provider-env": ^3.110.0
     "@aws-sdk/credential-provider-ini": ^3.112.0
