@@ -1,5 +1,5 @@
 import path from "path";
-import { getVersion as getVersionFromPackageJson } from "node-stage";
+import { getVersion as getVersionFromPackageJson } from "@povio/node-stage";
 
 /**
  * Fetch the version from package.json

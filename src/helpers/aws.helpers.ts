@@ -23,7 +23,7 @@ import {
   SyncActionColors,
 } from "./sync.helper";
 
-import { chk, logInfo } from "node-stage";
+import { chk, logInfo } from "@povio/node-stage";
 
 function getCredentials() {
   if (process.env.AWS_PROFILE) {

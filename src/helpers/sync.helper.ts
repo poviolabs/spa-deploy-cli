@@ -3,7 +3,7 @@ import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
 
-import { chk } from "node-stage";
+import { chk } from "@povio/node-stage";
 
 export enum SyncAction {
   unknown = "Unknown",

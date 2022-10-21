@@ -23,7 +23,7 @@ const crypto_1 = require("crypto");
 const process_1 = __importDefault(require("process"));
 const aws_helpers_1 = require("../helpers/aws.helpers");
 const sync_helper_1 = require("../helpers/sync.helper");
-const node_stage_1 = require("node-stage");
+const node_stage_1 = require("@povio/node-stage");
 const version_helper_1 = require("../helpers/version.helper");
 class SpaBuildOptions {
 }

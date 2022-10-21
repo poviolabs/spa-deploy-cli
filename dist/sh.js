@@ -8,7 +8,7 @@ const yargs_1 = __importDefault(require("yargs"));
 const helpers_1 = require("yargs/helpers");
 const deploy_command_1 = require("./commands/deploy.command");
 const invalidate_command_1 = require("./commands/invalidate.command");
-const node_stage_1 = require("node-stage");
+const node_stage_1 = require("@povio/node-stage");
 const version_helper_1 = require("./helpers/version.helper");
 (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
     .version((0, version_helper_1.getVersion)() || "unknown")

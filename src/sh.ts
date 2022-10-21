@@ -5,7 +5,7 @@ import { hideBin } from "yargs/helpers";
 
 import { command as deployCommand } from "./commands/deploy.command";
 import { command as invalidateCommand } from "./commands/invalidate.command";
-import { logError, logInfo } from "node-stage";
+import { logError, logInfo } from "@povio/node-stage";
 
 import { getVersion } from "./helpers/version.helper";
 

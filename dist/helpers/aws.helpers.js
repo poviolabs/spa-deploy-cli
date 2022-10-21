@@ -13,7 +13,7 @@ const mime_types_1 = require("mime-types");
 const micromatch_1 = require("micromatch");
 const fs_1 = __importDefault(require("fs"));
 const sync_helper_1 = require("./sync.helper");
-const node_stage_1 = require("node-stage");
+const node_stage_1 = require("@povio/node-stage");
 function getCredentials() {
     if (process.env.AWS_PROFILE) {
         return (0, credential_provider_ini_1.fromIni)();

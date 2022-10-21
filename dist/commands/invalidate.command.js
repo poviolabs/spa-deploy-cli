@@ -18,7 +18,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseArray = exports.command = void 0;
 const process_1 = __importDefault(require("process"));
 const aws_helpers_1 = require("../helpers/aws.helpers");
-const node_stage_1 = require("node-stage");
+const node_stage_1 = require("@povio/node-stage");
 class SpaBuildOptions {
 }
 __decorate([

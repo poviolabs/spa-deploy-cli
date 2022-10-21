@@ -32,7 +32,7 @@ import {
   YargsOptions,
   getGitChanges,
   confirm,
-} from "node-stage";
+} from "@povio/node-stage";
 
 import { getVersion } from "../helpers/version.helper";
 

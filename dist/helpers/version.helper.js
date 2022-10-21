@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getVersion = void 0;
 const path_1 = __importDefault(require("path"));
-const node_stage_1 = require("node-stage");
+const node_stage_1 = require("@povio/node-stage");
 /**
  * Fetch the version from package.json
  */
