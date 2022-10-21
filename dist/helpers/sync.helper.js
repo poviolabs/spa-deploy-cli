@@ -8,7 +8,7 @@ const fast_glob_1 = require("fast-glob");
 const crypto_1 = require("crypto");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const chalk_1 = require("node-stage/chalk");
+const chalk_1 = require("@povio/node-stage/chalk");
 var SyncAction;
 (function (SyncAction) {
     SyncAction["unknown"] = "Unknown";

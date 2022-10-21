@@ -9,7 +9,7 @@ import micromatch from "micromatch";
 import { createHash } from "crypto";
 import process from "process";
 
-import { ReleaseStrategy, Config } from "node-stage";
+import { ReleaseStrategy, Config } from "@povio/node-stage";
 import {
   logWarning,
   logError,
@@ -18,17 +18,17 @@ import {
   logBanner,
   getToolEnvironment,
   confirm,
-} from "node-stage/cli";
-import { getGitChanges } from "node-stage/git";
+} from "@povio/node-stage/cli";
+import { getGitChanges } from "@povio/node-stage/git";
 import {
   Option,
   getYargsOptions,
   loadYargsConfig,
   YargsOptions,
-} from "node-stage/yargs";
+} from "@povio/node-stage/yargs";
 import {
   loadColors
-} from "node-stage/chalk";
+} from "@povio/node-stage/chalk";
 
 import {
   executeCloudfrontInvalidation,

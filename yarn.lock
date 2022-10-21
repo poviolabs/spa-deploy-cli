@@ -2235,6 +2235,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@povio/node-stage@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "@povio/node-stage@npm:2.0.6"
+  dependencies:
+    dotenv: ^16.0.1
+    reflect-metadata: ^0.1.13
+    yaml: ^2.1.1
+  peerDependencies:
+    chalk: ^4.1.2
+    prompt-sync: ^4.2.0
+    simple-git: ^3.9.0
+    yargs: ^17.5.1
+  peerDependenciesMeta:
+    chalk:
+      optional: true
+    prompt-sync:
+      optional: true
+    simple-git:
+      optional: true
+    yargs:
+      optional: true
+  bin:
+    node-stage: dist/sh.js
+  checksum: 30ea31e62c66e06c57816d96de90519c4b3fa84ff1ea7bfc7f21fbb3727572ce179a4133bfdd2586e969670b23295ff27730495ad2a35956cb387750a2f5762e
+  languageName: node
+  linkType: hard
+
 "@povio/spa-deploy-cli@workspace:.":
   version: 0.0.0-use.local
   resolution: "@povio/spa-deploy-cli@workspace:."
@@ -2247,6 +2274,7 @@ __metadata:
     "@aws-sdk/node-config-provider": 3.193.0
     "@aws-sdk/types": ^3.193.0
     "@jest/types": ^28.1.1
+    "@povio/node-stage": ^2.0.6
     "@swc/core": ^1.2.205
     "@swc/jest": ^0.2.21
     "@types/diff": ^5.0.2
@@ -2268,7 +2296,6 @@ __metadata:
     jest: ^28.1.1
     micromatch: ^4.0.5
     mime-types: ^2.1.35
-    node-stage: "poviolabs/node-stage#v2"
     prettier: ^2.7.1
     prompt-sync: ^4.2.0
     semver: ^7.3.7
@@ -5553,33 +5580,6 @@ __metadata:
   version: 2.0.5
   resolution: "node-releases@npm:2.0.5"
   checksum: e85d949addd19f8827f32569d2be5751e7812ccf6cc47879d49f79b5234ff4982225e39a3929315f96370823b070640fb04d79fc0ddec8b515a969a03493a42f
-  languageName: node
-  linkType: hard
-
-"node-stage@poviolabs/node-stage#v2":
-  version: 2.0.1
-  resolution: "node-stage@https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"
-  dependencies:
-    dotenv: ^16.0.1
-    reflect-metadata: ^0.1.13
-    yaml: ^2.1.1
-  peerDependencies:
-    chalk: ^4.1.2
-    prompt-sync: ^4.2.0
-    simple-git: ^3.9.0
-    yargs: ^17.5.1
-  peerDependenciesMeta:
-    chalk:
-      optional: true
-    prompt-sync:
-      optional: true
-    simple-git:
-      optional: true
-    yargs:
-      optional: true
-  bin:
-    node-stage: ./dist/sh.js
-  checksum: 63b5965aeaf69c1336ec03dc9531991d0975584fc30bba3427fecaa9b849bf09d0f3d53ed1b734ce6ad5593dc643ed2016a21f9c49fe375bc0e01167f78f17ad
   languageName: node
   linkType: hard
 

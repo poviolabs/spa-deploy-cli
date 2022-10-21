@@ -36,6 +36,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@aws-sdk/node-config-provider", "npm:3.193.0"],\
             ["@aws-sdk/types", "npm:3.193.0"],\
             ["@jest/types", "npm:28.1.1"],\
+            ["@povio/node-stage", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#npm:2.0.6"],\
             ["@swc/core", "npm:1.2.205"],\
             ["@swc/jest", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#npm:0.2.21"],\
             ["@types/diff", "npm:5.0.2"],\
@@ -57,7 +58,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#npm:28.1.1"],\
             ["micromatch", "npm:4.0.5"],\
             ["mime-types", "npm:2.1.35"],\
-            ["node-stage", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"],\
             ["prettier", "npm:2.7.1"],\
             ["prompt-sync", "npm:4.2.0"],\
             ["semver", "npm:7.3.7"],\
@@ -3005,6 +3005,43 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["@povio/node-stage", [\
+        ["npm:2.0.6", {\
+          "packageLocation": "./.yarn/cache/@povio-node-stage-npm-2.0.6-cff02939ab-30ea31e62c.zip/node_modules/@povio/node-stage/",\
+          "packageDependencies": [\
+            ["@povio/node-stage", "npm:2.0.6"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#npm:2.0.6", {\
+          "packageLocation": "./.yarn/__virtual__/@povio-node-stage-virtual-e12f4c680f/0/cache/@povio-node-stage-npm-2.0.6-cff02939ab-30ea31e62c.zip/node_modules/@povio/node-stage/",\
+          "packageDependencies": [\
+            ["@povio/node-stage", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#npm:2.0.6"],\
+            ["@types/chalk", null],\
+            ["@types/prompt-sync", null],\
+            ["@types/simple-git", null],\
+            ["@types/yargs", "npm:17.0.10"],\
+            ["chalk", "npm:4.1.2"],\
+            ["dotenv", "npm:16.0.1"],\
+            ["prompt-sync", "npm:4.2.0"],\
+            ["reflect-metadata", "npm:0.1.13"],\
+            ["simple-git", "npm:3.10.0"],\
+            ["yaml", "npm:2.1.1"],\
+            ["yargs", "npm:17.5.1"]\
+          ],\
+          "packagePeers": [\
+            "@types/chalk",\
+            "@types/prompt-sync",\
+            "@types/simple-git",\
+            "@types/yargs",\
+            "chalk",\
+            "prompt-sync",\
+            "simple-git",\
+            "yargs"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["@povio/spa-deploy-cli", [\
         ["workspace:.", {\
           "packageLocation": "./",\
@@ -3018,6 +3055,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@aws-sdk/node-config-provider", "npm:3.193.0"],\
             ["@aws-sdk/types", "npm:3.193.0"],\
             ["@jest/types", "npm:28.1.1"],\
+            ["@povio/node-stage", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#npm:2.0.6"],\
             ["@swc/core", "npm:1.2.205"],\
             ["@swc/jest", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#npm:0.2.21"],\
             ["@types/diff", "npm:5.0.2"],\
@@ -3039,7 +3077,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#npm:28.1.1"],\
             ["micromatch", "npm:4.0.5"],\
             ["mime-types", "npm:2.1.35"],\
-            ["node-stage", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"],\
             ["prettier", "npm:2.7.1"],\
             ["prompt-sync", "npm:4.2.0"],\
             ["semver", "npm:7.3.7"],\
@@ -6961,43 +6998,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/node-releases-npm-2.0.5-ddba717991-e85d949add.zip/node_modules/node-releases/",\
           "packageDependencies": [\
             ["node-releases", "npm:2.0.5"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["node-stage", [\
-        ["https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3", {\
-          "packageLocation": "./.yarn/cache/node-stage-https-d80710c287-63b5965aea.zip/node_modules/node-stage/",\
-          "packageDependencies": [\
-            ["node-stage", "https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"]\
-          ],\
-          "linkType": "SOFT"\
-        }],\
-        ["virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3", {\
-          "packageLocation": "./.yarn/__virtual__/node-stage-virtual-5bd821583c/0/cache/node-stage-https-d80710c287-63b5965aea.zip/node_modules/node-stage/",\
-          "packageDependencies": [\
-            ["node-stage", "virtual:d4289d3940e5ad237a7d1d5484f69295bc9bbd6f3a850fd1771f9f0ce41c26b9b183ceda940194a269c09e13da2fa91c80823c61747986f6bfc1257872a8ff02#https://github.com/poviolabs/node-stage.git#commit=036ac79851e23e07afa1a627f31def4f8baaa9f3"],\
-            ["@types/chalk", null],\
-            ["@types/prompt-sync", null],\
-            ["@types/simple-git", null],\
-            ["@types/yargs", "npm:17.0.10"],\
-            ["chalk", "npm:4.1.2"],\
-            ["dotenv", "npm:16.0.1"],\
-            ["prompt-sync", "npm:4.2.0"],\
-            ["reflect-metadata", "npm:0.1.13"],\
-            ["simple-git", "npm:3.10.0"],\
-            ["yaml", "npm:2.1.1"],\
-            ["yargs", "npm:17.5.1"]\
-          ],\
-          "packagePeers": [\
-            "@types/chalk",\
-            "@types/prompt-sync",\
-            "@types/simple-git",\
-            "@types/yargs",\
-            "chalk",\
-            "prompt-sync",\
-            "simple-git",\
-            "yargs"\
           ],\
           "linkType": "HARD"\
         }]\

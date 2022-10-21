@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const yargs_1 = __importDefault(require("yargs"));
 const helpers_1 = require("yargs/helpers");
 const deploy_command_1 = require("./commands/deploy.command");
-const cli_1 = require("node-stage/cli");
+const cli_1 = require("@povio/node-stage/cli");
 const version_helper_1 = require("./helpers/version.helper");
 (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv))
     .version((0, version_helper_1.getVersion)() || "unknown")

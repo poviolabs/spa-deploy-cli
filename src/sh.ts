@@ -4,7 +4,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import { command as deployCommand } from "./commands/deploy.command";
-import { logError, logInfo } from "node-stage/cli";
+import { logError, logInfo } from "@povio/node-stage/cli";
 
 import { getVersion } from "./helpers/version.helper";
 
