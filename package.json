@@ -1,5 +1,5 @@
 {
-  "name": "@poviolabs/spa-deploy-cli",
+  "name": "@povio/spa-deploy-cli",
   "version": "3.0.3",
   "packageManager": "yarn@3.2.4",
   "bin": "./dist/sh.js",
@@ -14,7 +14,7 @@
     "lint": "eslint --fix"
   },
   "files": [
-    "dist"
+    "/dist/**/*"
   ],
   "keywords": [
     "povio",
@@ -31,7 +31,8 @@
     "type": "git"
   },
   "contributors": [
-    "Marko Zabreznik <marko.zabreznik@poviolabs.com>"
+    "Marko Zabreznik <marko.zabreznik@povio.com>",
+    "Adrian Jarc <adrian.jarc@povio.com>"
   ],
   "dependencies": {
     "@aws-sdk/client-cloudfront": "3.193.0",
