@@ -4,6 +4,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import { command as deployCommand } from "./commands/deploy.command";
+import { command as invalidateCommand } from "./commands/invalidate.command"
 import { logError, logInfo } from "@povio/node-stage/cli";
 
 import { getVersion } from "./helpers/version.helper";
@@ -12,6 +13,7 @@ yargs(hideBin(process.argv))
   .version(getVersion() || "unknown")
   .scriptName("spa-deploy-cli")
   .command(deployCommand)
+  .command(invalidateCommand)
   .help()
   .demandCommand(1)
   .strictCommands(true)
