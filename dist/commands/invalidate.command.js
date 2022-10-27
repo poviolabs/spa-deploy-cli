@@ -17,10 +17,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseArray = exports.command = void 0;
 const process_1 = __importDefault(require("process"));
-const node_stage_1 = require("node-stage");
-const cli_1 = require("node-stage/cli");
-const yargs_1 = require("node-stage/yargs");
-const chalk_1 = require("node-stage/chalk");
+const node_stage_1 = require("@povio/node-stage");
+const cli_1 = require("@povio/node-stage/cli");
+const yargs_1 = require("@povio/node-stage/yargs");
+const chalk_1 = require("@povio/node-stage/chalk");
 const aws_helpers_1 = require("../helpers/aws.helpers");
 class SpaBuildOptions {
 }
