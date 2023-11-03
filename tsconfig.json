@@ -1,23 +1,21 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "strict": true,
-    "declaration": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "outDir": "./dist",
-    "module": "commonjs",
-    "baseUrl": "src",
-    "sourceRoot": "/",
+    "target": "es2022",
+    "module": "es2022",
     "sourceMap": true,
+    "outDir": "dist",
+    "strict": true,
+    "lib": ["es2022", "dom"],
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "allowJs": true,
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false
   },
-  "include": ["src/**/*"],
-  "ts-node": {
-    "transpileOnly": true,
-    "transpiler": "ts-node/transpilers/swc-experimental"
-  }
+  "include": ["src/**/*"]
 }
