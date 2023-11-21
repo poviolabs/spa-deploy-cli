@@ -1,5 +1,5 @@
 /*
-  Deploy files to S3
+  Deploy files to S3 and Invalidate CloudFront
  */
 
 import yargs from "yargs";
@@ -7,142 +7,125 @@ import path from "path";
 import fs from "fs";
 import micromatch from "micromatch";
 import { createHash } from "crypto";
-import process from "process";
 
-import { ReleaseStrategy, Config } from "@povio/node-stage";
 import {
-  logWarning,
+  executeS3SyncPlan,
+  prepareS3SyncPlan,
+  printS3SyncPlan,
+} from "../helpers/aws-s3.helper";
+import {
+  executeCloudfrontInvalidation,
+  prepareCloudfrontInvalidation,
+} from "../helpers/aws-cloudfront.helper";
+import { SyncAction } from "../helpers/sync.helper";
+import { getVersion } from "../helpers/version.helper";
+import {
+  logBanner,
   logError,
   logInfo,
   logVariable,
-  logBanner,
-  getToolEnvironment,
-  confirm,
-} from "@povio/node-stage/cli";
-import { getGitChanges } from "@povio/node-stage/git";
-import {
-  Option,
-  getYargsOptions,
-  loadYargsConfig,
-  YargsOptions,
-} from "@povio/node-stage/yargs";
-import {
-  loadColors
-} from "@povio/node-stage/chalk";
+  logWarning,
+} from "../helpers/cli.helper";
+import { getBuilder, YargOption, YargsOptions } from "../helpers/yargs.helper";
+import { getGitChanges, getGitVersion } from "../helpers/git.helper";
+import { BaseConfig } from "../types/bootstrap.dto";
+import { z } from "zod";
+import { safeLoadConfig } from "../helpers/config.helper";
 
-import {
-  executeCloudfrontInvalidation,
-  executeS3SyncPlan,
-  prepareCloudfrontInvalidation,
-  prepareS3SyncPlan,
-  printS3SyncPlan,
-} from "../helpers/aws.helpers";
-import { SyncAction } from "../helpers/sync.helper";
-import { getVersion } from "../helpers/version.helper";
+export const DeployConfig = BaseConfig.extend({
+  taskFamily: z.string(),
+  serviceName: z.string(),
+  clusterName: z.string(),
+  build: z.array(
+    z.object({
+      name: z.string(),
+      repoName: z.string(),
+      context: z.string().optional(),
+      dockerfile: z.string().optional(),
+      platform: z.string().default("linux/amd64"),
+      environment: z.record(z.string()).optional(),
+    }),
+  ),
+});
 
 class SpaBuildOptions implements YargsOptions {
-  @Option({ envAlias: "PWD", demandOption: true })
+  @YargOption({ envAlias: "PWD", demandOption: true })
   pwd!: string;
 
-  @Option({ envAlias: "STAGE", demandOption: true })
+  @YargOption({ envAlias: "STAGE", demandOption: true })
   stage!: string;
 
-  @Option({
+  @YargOption({
     envAlias: "RELEASE",
-    envAliases: ["CIRCLE_SHA1", "BITBUCKET_COMMIT", "GITHUB_SHA"],
     demandOption: true,
   })
   release!: string;
 
-  @Option({
-    envAlias: "APP_VERSION",
-    envAliases: ["CIRCLE_TAG", "BITBUCKET_TAG"],
-    type: "string",
-    alias: "ecsVersion",
-  })
-  appVersion!: string;
-
-  @Option({
-    default: "gitsha",
-    choices: ["gitsha", "gitsha-stage"],
-    type: "string",
-  })
-  releaseStrategy!: ReleaseStrategy;
-
-  @Option({ envAlias: "IGNORE_GIT_CHANGES" })
-  ignoreGitChanges!: boolean;
-
-  @Option({ describe: "Remove all undefined files from S3" })
-  purge!: boolean;
-
-  @Option({ describe: "Replace all files even if not changed" })
-  force!: boolean;
-
-  @Option({ envAlias: "VERBOSE", default: false })
-  verbose!: boolean;
-
-  @Option({ envAlias: "CI" })
+  @YargOption({ envAlias: "CI" })
   ci!: boolean;
 
-  config!: Config;
+  @YargOption({ envAlias: "VERSION", type: "string" })
+  appVersion!: string;
+
+  @YargOption({ envAlias: "IGNORE_GIT_CHANGES" })
+  ignoreGitChanges!: boolean;
+
+  @YargOption({ describe: "Remove all undefined files from S3" })
+  purge!: boolean;
+
+  @YargOption({ describe: "Replace all files even if not changed" })
+  force!: boolean;
+
+  @YargOption({ envAlias: "VERBOSE", default: false })
+  verbose!: boolean;
 }
 
 export const command: yargs.CommandModule = {
   command: "deploy",
-  describe: "Deploy a SPA app",
-  builder: async (y) => {
-    return y
-      .options(getYargsOptions(SpaBuildOptions))
-      .middleware(async (_argv) => {
-        return (await loadYargsConfig(
-          SpaBuildOptions,
-          _argv as any,
-          "spaDeploy"
-        )) as any;
-      }, true);
-  },
+  describe: "Deploy an SPA app and purge CloudFront cache",
+  builder: getBuilder(SpaBuildOptions),
   handler: async (_argv) => {
     const argv = (await _argv) as unknown as SpaBuildOptions;
 
-    await loadColors();
-
-    logBanner(`SPA Build ${getVersion()}`);
-
-    const pwd = argv.pwd;
-
-    for (const [k, v] of Object.entries(await getToolEnvironment(argv))) {
-      logVariable(k, v);
-    }
-
-    const stage = argv.stage;
-    if (stage) {
-      // get current STAGE if set
-      // CI would not use this for builds
-      logVariable("STAGE", argv.stage);
-    }
+    logBanner(`SpaDeploy ${getVersion()}`);
+    logInfo(`NodeJS Version: ${process.version}`);
 
     if (!argv.ci) {
-      logInfo("Running Interactively");
-    }
-
-    const verbose = !!argv.verbose;
-
-    const gitChanges = await getGitChanges(pwd);
-    if (gitChanges !== "") {
-      if (argv.ignoreGitChanges) {
-        logWarning("Changes detected in .git");
-      } else {
-        if (gitChanges === undefined) {
-          logError("Error detecting Git");
-        } else {
-          logBanner("Detected Changes in Git - Stage must be clean to build!");
-          console.log(gitChanges);
+      // check for git changes
+      if (fs.existsSync(path.join(argv.pwd, ".git"))) {
+        logVariable("Git Bin Version", await getGitVersion(argv.pwd));
+        const gitChanges = await getGitChanges(argv.pwd);
+        if (gitChanges !== "") {
+          if (argv.ignoreGitChanges) {
+            logWarning("Changes detected in .git");
+          } else {
+            if (gitChanges === undefined) {
+              logError("Error detecting Git");
+            } else {
+              logBanner(
+                "Detected Changes in Git - Stage must be clean to build!",
+              );
+              console.log(gitChanges);
+            }
+            process.exit(1);
+          }
         }
-        process.exit(1);
       }
+    } else {
+      logInfo("Running Non-Interactively");
     }
 
     logBanner("Build Environment");
+    logVariable("pwd", argv.pwd);
+    logVariable("release", argv.release);
+    logVariable("stage", argv.stage);
+
+    const config = await safeLoadConfig(
+      "spa-deploy",
+      argv.pwd,
+      argv.stage,
+      DeployConfig,
+    );
 
     const { spaDeploy, spaGlobals, spaIndexGlob } = argv.config;
 
@@ -219,7 +202,7 @@ export const command: yargs.CommandModule = {
         includeGlob: spaDeploy?.includeGlob,
         ignoreGlob: spaDeploy?.ignoreGlob,
       },
-      s3Options
+      s3Options,
     );
 
     // inject globals into index files
@@ -241,11 +224,11 @@ export const command: yargs.CommandModule = {
         if (data.match('<script id="env-data">')) {
           item.data = data.replace(
             /<script id="env-data">[^<]*<\/script>/,
-            injectedData
+            injectedData,
           );
         } else if (data.match("</head>")) {
           logWarning(
-            `Could not find <script id="env-data"> in ${item.key}. Injecting at end of HEAD.`
+            `Could not find <script id="env-data"> in ${item.key}. Injecting at end of HEAD.`,
           );
           item.data = data.replace(/<\/head>/, injectedData + `</head>`);
         } else {
@@ -294,16 +277,16 @@ export const command: yargs.CommandModule = {
 
     // s3 sync plan
     logBanner(`S3 Sync Plan`);
-    printS3SyncPlan(plan, true, verbose);
+    printS3SyncPlan(plan, true, !!argv.verbose);
 
     // cloudfront plan
     const cloudfrontInvalidations = prepareCloudfrontInvalidation(
       plan,
-      parseArray<string>(spaDeploy?.cloudfront?.invalidatePaths)
+      parseArray<string>(spaDeploy?.cloudfront?.invalidatePaths),
     );
 
     const cloudfrontId = parseArray<string>(
-      spaDeploy?.cloudfront?.distributionId
+      spaDeploy?.cloudfront?.distributionId,
     );
     if (cloudfrontInvalidations.length > 0) {
       logBanner(`Cloudfront invalidations`);
@@ -322,8 +305,8 @@ export const command: yargs.CommandModule = {
     if (
       !plan.items.some((x) =>
         [SyncAction.create, SyncAction.update, SyncAction.delete].includes(
-          x.action!
-        )
+          x.action!,
+        ),
       )
     ) {
       logInfo("Nothing to do!");
@@ -344,7 +327,7 @@ export const command: yargs.CommandModule = {
       await executeCloudfrontInvalidation(
         cloudfrontInvalidations,
         cloudfrontId,
-        awsRegion
+        awsRegion,
       );
     }
 

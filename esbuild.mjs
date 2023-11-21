@@ -1,0 +1,25 @@
+import { build } from "esbuild";
+import fs from "fs";
+
+const version = JSON.parse(fs.readFileSync('package.json', "utf-8")).version;
+
+await build({
+  entryPoints: ["./src/sh.ts"],
+  bundle: true,
+  sourcemap: false,
+  platform: "node",
+  minify: true,
+  metafile: false,
+  format: "cjs",
+  keepNames: true,
+  banner: {
+    // hacks to allow commonjs modules to be imported
+    //js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);import * as url from 'url';const __dirname = url.fileURLToPath(new URL('.', import.meta.url));"
+  },
+  target: "node14",
+  logLevel: "info",
+  outfile: "./dist/sh.js",
+  define: {
+    "process.env.ECS_DEPLOY_VERSION": `"${version}"`,
+  }
+});
