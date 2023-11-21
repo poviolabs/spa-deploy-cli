@@ -1,142 +1,155 @@
 # SPA Deploy CLI
 
-Use this tool to deploy a SPA to AWS with CI or manually.
+Use this tool to deploy and configure an SPA.
 
 Features:
- - Targeted CloudFront invalidation and caching
- - CircleCI, Bitbucket, and  GitHub Actions examples
- - Embedded Globals and Build uplifting ( dev -> stg -> prd )
-- Uses the [node-stage](https://github.com/poviolabs/node-stage) tool for configuration.
+
+Static SPA deploy:
+- Deploy to AWS S3
+- Targeted CloudFront invalidation and caching
+- Embed environment variables into HTML
+
+Next.js Configuration:
+- From SSM Parameter Store
 
 Examples:
- - [Vue Basic](./examples/vue-basic)
+
+- [Vue Basic](./examples/vue-basic)
 
 # Setup
 
 ```bash
-yarn add spa-deploy-cli@poviolabs/spa-deploy-cli#v3
-
-# update
-yarn up spa-deploy-cli@poviolabs/spa-deploy-cli#v3
+yarn add @povio/spa-deploy-cli@4
 ```
 
-or install globally 
+or install globally
 
 ```bash
-npm i -g spa-deploy-cli@poviolabs/spa-deploy-cli#v3 --force
+npm i -g @povio/spa-deploy-cli@4 --force
 ```
 
-## Full config.yaml
-
-Please see the [examples](./examples/vue-basic/config.yaml) for sane defaults!
+# Configure
 
 ```yaml
 
-stages:
-  myapp-dev: # one stage per deploy
-    spaDeploy:
-      verbose: false
-      buildPath: "./dist"
-      includeGlob: "**"
-      ignoreGlob:
-        
-      aws:
+# Static SPA deploy config
+deploy:
+    buildPath: "./dist"
+    includeGlob: "**"
+    ignoreGlob:
+    
+    aws:
         region: us-east-1
-        accountId:
+        accountId: 000000000000
         
-      s3:
+    s3:
         acl: "public-read"
         bucket: myapp-dev-website
         prefix:
         purge: false
         force: false
         invalidateGlob: # extra glob for invalidation
-      
-      cloudfront:
+          
+    cloudfront:
         distributionId:
-          - CF324365475432
+          - CF000000000000
         invalidatePaths:
+          - "/*"
 
-      releaseStrategy:
-  
-    spaIndexGlob: index.html
-  
-    # inject variables into the website
-    spaGlobals:
-      # APP_STAGE: automatic via stage
-      # APP_VERSION: automatic via appVersion option
-      # APP_RELEASE: automatic via git
-  
-    ## dotenv overrides
-    # envFiles: [ '.env.myapp-dev.secrets' ]
-    ## environment overrides
-    # environment:
-    #  app__spaDeploy__s3__bucket: myapp-dev-website
+# Environment file config
+inject:
+    # Write into env file (Next.js)
+    #  destination: ./.env.local
+    
+    # Write into yaml
+    #  destination: ./production.yaml
+    
+    # Write into .html, in the head section or <script id="env-data"></script>
+    # Warning: all values will be public
+    #  destination: ./dist/index.html
+    
+    values:
+        # load config from ./.config/${stage}.base.template.env
+        # and interpolate ${arn:aws:ssm..} and ${env:ENV_VALUE} values
+        # load them onto the root
+      - name: @
+        configFrom: base.template
+    
+        # simple value mapping
+      - name: database__password
+        valueFrom: arn:aws:ssm:::parameter/myapp-dev/database/password
+    
+        # JSON object mapping
+      - name: database
+        valueFrom: arn:aws:ssm:::parameter/myapp-dev/database
+    
+      - name: database__host
+        valueFrom: env:DATABASE_HOST
 ```
 
-## Injecting globals
+### Example
 
-Add this snippet to the `head` section in the main `index.html`.
-The content will be replaced with `spaGlobals` in the environment
-at build time.
+Where `configFrom: base.template` and the config file is `.config/${stage}.base.template.yml`:
+
+```yaml
+APP_RELEASE: ${release}
+APP_STAGE: ${stage}
+APP_VERSION: ${env:APP_VERSION}
+STATIC_URL: https://static.example.com
+NEXT_PUBLIC_SENTRY_CDN: https://public@sentry.example.com/1
+```
+
+the output will be at the set destination, for example `.env.local`:
+
+```
+APP_RELEASE=61be6e2c61be6e2c61be6e2c61be6e2c
+APP_STAGE=myapp-stg
+APP_VERSION=0.0.1
+STATIC_URL: https://static.example.com
+NEXT_PUBLIC_SENTRY_DSN=https://public@sentry.example.com/1
+```
+
+## Injecting the environment
+
+```bash
+yarn spa-deploy inject --stage myapp-stg
+```
+
+### Pure SPA or after build time configuration
+
+Using the `destination: ./dist/index.html` option, you can inject the environment into the HTML file.
+
+The file will be edited in place, with the following content inserted into
+the `<head>` section, replacing any existing `<script id="env-data">`:
 
 ```html
 <script id="env-data">
-    // you can add local testing variables here,
-    // this will get overwritten at build
-    window.APP_STAGE = "myapp-stg";
+  // you can add local testing variables here,
+  // this will get overwritten at build
+  window.APP_STAGE = "myapp-stg";
 </script>
 ```
 
-## Local Deploy
-
-Check the examples for CI deploy strategies or you can manually deploy with setting up the AWS environment:
-
-config.local.yaml  (don't forget to gitignore!)
-```yaml
-stages:
-  myapp-dev:
-    environment:
-      AWS_ACCESS_KEY_ID: 
-      AWS_SECRET_ACCESS_KEY:
-```
+## Static SPA Deploy
 
 ```bash
-yarn spa-deploy-cli deploy --stage myapp-stg --appVersion 0.0.1
+yarn spa-deploy deploy --stage myapp-stg
 ```
-
-# spa-deploy-cli deploy
-
-Descriptions for useful flags. Use `--help` for a comprehensive list
-
-### --stage
-
-The slug of the deployment (ie. prd/stg/dev). Used in config.yaml.
-
-### --appVersion
-
-Version of the deploy. Tied to a specific Release and Stage. 
-If supplied with a semver format, the version will be prefixed with `${STAGE}`
-
-### --ignoreGitChanges
-
-Use this flag while debugging the build. This might have unintended consequences - never deploy a build made using this flag.
-
-### --verbose
-
-Display more output
 
 # Development
 
 ## Test locally
 
 ```bash
-# test with ts-node
-yarn test:ts-node:cli --help
+# run tests
+yarn test
+
+# run sources with tsx
+yarn start --help
 
 # build new version
 yarn build
 
 # test build
-yarn test --help
+yarn start:prod --help
 ```

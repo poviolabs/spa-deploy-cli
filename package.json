@@ -5,12 +5,14 @@
   "bin": {
     "spa-deploy": "./dist/sh.js"
   },
+  "type": "module",
   "scripts": {
-    "start": "tsx ./src/sh.ts",
-    "test": "tsx --test ./src/**/*.test.ts",
+    "start": "node --import tsx/esm ./src/sh.ts",
+    "test": "node --import tsx/esm --test **/*.test.ts",
     "test:watch": "tsx --watch --test ./src/**/*.test.ts",
     "build:clean": "rm -rf ./dist",
     "build": "yarn build:clean && node ./esbuild.mjs && chmod +x ./dist/sh.js",
+    "start:dist": "node ./dist/sh.js",
     "lint": "eslint --fix"
   },
   "files": [

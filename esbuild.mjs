@@ -20,6 +20,6 @@ await build({
   logLevel: "info",
   outfile: "./dist/sh.js",
   define: {
-    "process.env.ECS_DEPLOY_VERSION": `"${version}"`,
+    "process.env.SPA_DEPLOY_VERSION": `"${version}"`,
   }
 });

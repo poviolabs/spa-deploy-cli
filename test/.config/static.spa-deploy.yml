@@ -1,0 +1,31 @@
+
+inject:
+    destination: ./dist/index.html
+    values:
+      - name: @
+        configFrom: environment
+
+deploy:
+    buildPath: "./dist"
+    includeGlob: "**"
+    ignoreGlob:
+
+    aws:
+        region: us-east-1
+        accountId: 000000000000
+
+    s3:
+        acl: "public-read"
+        bucket: myapp-dev-website
+        prefix:
+        purge: false
+        force: false
+        invalidateGlob: # extra glob for invalidation
+
+    cloudfront:
+      distributionId:
+        - CF000000000000
+      invalidatePaths:
+        - "/*"
+
+
