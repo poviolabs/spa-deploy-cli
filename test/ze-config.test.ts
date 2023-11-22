@@ -1,23 +1,25 @@
 import { test } from "node:test";
-import { resolveBootstrapConfigItem } from "./config.helper";
+import { resolveZeConfigItem } from "../src/helpers/ze-config.js";
 import assert from "assert";
 
-test("config.helper", async () => {
+test("ze-config", async () => {
   process.env.MYAPP_RECORD1 = "value 1";
   process.env.MYAPP_RECORD2 = "value 2";
   process.env.MYAPP_RECORD3 = "value 3";
 
-  const config = await resolveBootstrapConfigItem(
+  const stage = "myapp-dev";
+
+  const config = await resolveZeConfigItem(
     {
       name: "test",
-      destination: "./.config/myapp-dev.backend.yml",
+      destination: "./test.zeconfig.yml",
       values: [
         { name: "database__name", value: "test" },
         { name: "database__username2", value: "test" },
         { name: "database__password", valueFrom: "env:MYAPP_RECORD3" },
         {
           name: "@",
-          configFrom: "backend.template",
+          configFrom: "environment",
         },
         //{
         //  name: "@",
@@ -26,11 +28,11 @@ test("config.helper", async () => {
       ],
     },
     {
-      accountId: "000000000000",
-      region: "us-east-1",
+      release: "xxxxxxxxxxxx",
+      awsRegion: "us-east-1",
     },
-    "./test",
-    "myapp-dev",
+    new URL(".", import.meta.url).pathname,
+    stage,
   );
 
   assert.deepStrictEqual(config, {
@@ -38,16 +40,11 @@ test("config.helper", async () => {
       name: "test",
       username2: "test",
       password: "value 3",
-      username: "myapp2",
-      from_env: "value 1",
-      items: [
-        {
-          object1: {
-            record: "value 2",
-          },
-        },
-        "value 3",
-      ],
     },
+    APP_RELEASE: "xxxxxxxxxxxx",
+    APP_STAGE: "myapp-dev",
+    APP_VERSION: undefined,
+    NEXT_PUBLIC_SENTRY_CDN: "https://public@sentry.example.com/1",
+    STATIC_URL: "https://static.example.com",
   });
 });

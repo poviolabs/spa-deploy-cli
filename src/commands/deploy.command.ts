@@ -28,7 +28,7 @@ import {
 } from "../helpers/cli.helper";
 import { getBuilder, YargOption, YargsOptions } from "../helpers/yargs.helper";
 import { getGitChanges, getGitVersion } from "../helpers/git.helper";
-import { BaseConfig } from "../types/bootstrap.dto";
+import { BaseConfig } from "../helpers/ze-config.js";
 import { z } from "zod";
 import { safeLoadConfig } from "../helpers/config.helper";
 

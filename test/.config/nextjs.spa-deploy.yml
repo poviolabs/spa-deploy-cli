@@ -1,6 +1,9 @@
 
+aws:
+  region: us-east-1
+
 inject:
-    destination: ./.env.local
-    values:
-      - name: @
-        configFrom: environment
+  destination: ./.test-example.env
+  values:
+    - name: '@'
+      configFrom: environment

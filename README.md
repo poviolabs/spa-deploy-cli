@@ -37,10 +37,6 @@ deploy:
     buildPath: "./dist"
     includeGlob: "**"
     ignoreGlob:
-    
-    aws:
-        region: us-east-1
-        accountId: 000000000000
         
     s3:
         acl: "public-read"
@@ -67,6 +63,7 @@ inject:
     # Write into .html, in the head section or <script id="env-data"></script>
     # Warning: all values will be public
     #  destination: ./dist/index.html
+
     
     values:
         # load config from ./.config/${stage}.base.template.env
@@ -85,6 +82,10 @@ inject:
     
       - name: database__host
         valueFrom: env:DATABASE_HOST
+
+aws:
+    region: us-east-1
+    accountId: 000000000000
 ```
 
 ### Example
@@ -92,8 +93,8 @@ inject:
 Where `configFrom: base.template` and the config file is `.config/${stage}.base.template.yml`:
 
 ```yaml
-APP_RELEASE: ${release}
-APP_STAGE: ${stage}
+APP_RELEASE: ${func:release}
+APP_STAGE: ${func:stage}
 APP_VERSION: ${env:APP_VERSION}
 STATIC_URL: https://static.example.com
 NEXT_PUBLIC_SENTRY_CDN: https://public@sentry.example.com/1
