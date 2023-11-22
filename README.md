@@ -147,10 +147,12 @@ yarn test
 
 # run sources with tsx
 yarn start --help
+yarn start inject --pwd ./test --stage myapp-dev
 
 # build new version
 yarn build
 
 # test build
 yarn start:prod --help
+yarn start:dist inject --pwd ./test --stage myapp-dev
 ```
