@@ -17,3 +17,5 @@ node_modules
 config.local.yaml
 
 .tmp
+.env
+.env.local

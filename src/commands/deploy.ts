@@ -9,11 +9,12 @@ import {
 } from "../helpers/aws-cloudfront.helper";
 import { SyncAction } from "../helpers/sync.helper";
 import {
-  logBanner,
-  logError,
-  logInfo,
-  logVariable,
-  logWarning,
+    confirm,
+    logBanner,
+    logError,
+    logInfo,
+    logVariable,
+    logWarning,
 } from "../helpers/cli.helper";
 import {
   executeS3SyncPlan,
@@ -189,7 +190,7 @@ export async function deploy(argv: {
         ),
       )
     ) {
-      logWarning(`No files to deploy`);
+      logInfo(`No files to deploy`);
       continue;
     }
 

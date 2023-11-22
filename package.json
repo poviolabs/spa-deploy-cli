@@ -7,12 +7,12 @@
   },
   "type": "module",
   "scripts": {
-    "start": "node --import tsx/esm ./src/sh.ts",
+    "start": "node --env-file=.env --import tsx/esm ./src/sh.ts",
     "test": "node --import tsx/esm --test **/*.test.ts",
     "test:watch": "node --import tsx/esm --watch --test **/*.test.ts",
     "build:clean": "rm -rf ./dist",
     "build": "yarn build:clean && node ./esbuild.mjs && chmod +x ./dist/sh.js",
-    "start:dist": "node ./dist/sh.js",
+    "start:dist": "node --env-file=.env ./dist/sh.js",
     "lint": "eslint --fix"
   },
   "files": [

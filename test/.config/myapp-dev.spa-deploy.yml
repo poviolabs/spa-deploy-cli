@@ -15,7 +15,7 @@ deploy:
 
     s3:
         acl: "public-read"
-        bucket: myapp-dev-website
+        bucket: deploy-bucket
         #prefix:
         purge: false
         force: false

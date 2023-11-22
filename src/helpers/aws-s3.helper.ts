@@ -23,12 +23,12 @@ export function getS3ClientInstance(options: {
   region: string;
   endpoint?: string;
 }) {
+  const endpoint = options.endpoint || process.env.AWS_S3_ENDPOINT;
+
   return new S3Client({
     credentials: getCredentials({ region: options.region }),
     region: options.region,
-    ...(options.endpoint
-      ? { forcePathStyle: true, endpoint: options.endpoint }
-      : {}),
+    ...(endpoint ? { forcePathStyle: true, endpoint } : {}),
   });
 }
 

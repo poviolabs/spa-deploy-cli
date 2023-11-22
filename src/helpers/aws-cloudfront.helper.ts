@@ -6,10 +6,15 @@ import { getCredentials } from "./aws.helper";
 import { logInfo } from "./cli.helper";
 import { S3SyncPlan } from "./aws-s3.helper";
 
-export function getCloudfrontClientInstance(options: { region: string }) {
+export function getCloudfrontClientInstance(options: {
+  region: string;
+  endpoint?: string;
+}) {
+  const endpoint = options.endpoint || process.env.AWS_CLOUDFRONT_ENDPOINT;
   return new CloudFrontClient({
     credentials: getCredentials({ region: options.region }),
     region: options.region,
+    endpoint,
   });
 }
 
