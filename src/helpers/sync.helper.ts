@@ -1,4 +1,4 @@
-import { sync as fgSync } from "fast-glob";
+import fg from "fast-glob";
 import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
@@ -38,7 +38,7 @@ export interface ScanLocalOptions {
 export async function* scanLocal(
   options: ScanLocalOptions,
 ): AsyncGenerator<LocalFile> {
-  for await (const entry of fgSync(options.includeGlob || ["**"], {
+  for await (const entry of fg.globSync(options.includeGlob || ["**"], {
     onlyFiles: true,
     ignore: options.ignoreGlob,
     cwd: options.path,

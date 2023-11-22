@@ -5,7 +5,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { lookup } from "mime-types";
-import { isMatch } from "micromatch";
+import mm from "micromatch";
 import fs from "fs";
 
 import {
@@ -164,7 +164,7 @@ export async function prepareS3SyncPlan(
 
     if (
       s3Options.invalidateGlob &&
-      isMatch(file.key, s3Options.invalidateGlob)
+      mm.isMatch(file.key, s3Options.invalidateGlob)
     ) {
       itemsDict[file.key] = {
         key: file.key,
@@ -238,8 +238,36 @@ export async function prepareS3SyncPlan(
     }
   }
 
+  const sortAction: Record<SyncAction, number> = {
+    [SyncAction.unknown]: 0,
+    [SyncAction.ignore]: 1,
+    [SyncAction.unchanged]: 2,
+    [SyncAction.create]: 3,
+    [SyncAction.update]: 4,
+    [SyncAction.delete]: 5,
+  };
+
+  const items = Object.values(itemsDict);
+
+  // sort deploy
+  items.sort((a, b) => {
+    // > 0	 sort b before a
+    // < 0	 sort a before b
+    // === 0	 keep original order of a and b
+
+    // sort by action
+    if (sortAction[a.action!] > sortAction[b.action!]) return 1;
+    if (sortAction[a.action!] < sortAction[b.action!]) return -1;
+
+    // cached items go first
+    if (a.cache && !b.cache) return -1;
+    if (!a.cache && b.cache) return 1;
+
+    return 0;
+  });
+
   return {
-    items: Object.values(itemsDict),
+    items,
     region: s3Options.region,
     bucket: s3Options.bucket,
     endpoint: s3Options.endpoint,

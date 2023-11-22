@@ -1,5 +1,5 @@
 import { test } from "node:test";
-import { inject } from "../src/commands/inject.command";
+import { inject } from "../src/commands/inject";
 import fs from "fs";
 import path from "path";
 import assert from "assert";

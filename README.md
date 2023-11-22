@@ -35,22 +35,21 @@ npm i -g @povio/spa-deploy-cli@4 --force
 # Static SPA deploy config
 deploy:
     buildPath: "./dist"
-    includeGlob: "**"
-    ignoreGlob:
+    #includeGlob: "**"
+    #ignoreGlob:
         
     s3:
         acl: "public-read"
         bucket: myapp-dev-website
-        prefix:
+        #prefix:
         purge: false
         force: false
-        invalidateGlob: # extra glob for invalidation
+        # extra glob for invalidation
+        #invalidateGlob: 
           
     cloudfront:
-        distributionId:
-          - CF000000000000
-        invalidatePaths:
-          - "/*"
+        distributionId: CF000000000000
+        invalidatePaths: "/*"
 
 # Environment file config
 inject:

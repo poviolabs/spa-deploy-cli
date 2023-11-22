@@ -13,10 +13,7 @@ export function getCloudfrontClientInstance(options: { region: string }) {
   });
 }
 
-export function prepareCloudfrontInvalidation(
-  plan: S3SyncPlan,
-  invalidatePaths: string[],
-): string[] {
+export function prepareCloudfrontInvalidation(plan: S3SyncPlan): string[] {
   const { items } = plan;
   return [
     ...items.reduce((acc, item) => {
@@ -25,7 +22,6 @@ export function prepareCloudfrontInvalidation(
       }
       return acc;
     }, [] as string[]),
-    ...invalidatePaths,
   ];
 }
 

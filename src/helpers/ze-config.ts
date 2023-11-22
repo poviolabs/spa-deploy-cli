@@ -43,7 +43,7 @@ export const ZeConfigs = z
   .transform((val) =>
     Array.isArray(val) ? val : [{ name: "default", ...val }],
   );
-export type ZeConfigs = z.output<typeof ZeConfigs>;
+export type ZeConfigsDto = z.output<typeof ZeConfigs>;
 
 /**
  * Load config in order, one of
@@ -59,15 +59,24 @@ export async function safeLoadConfig<T extends z.ZodType<any, any, any>>(
   cwd: string,
   stage: string,
   type: T,
+  optional: boolean = true,
 ): Promise<z.output<T>> {
-  const config = await loadConfig(moduleName, cwd, stage);
+  const config = await loadConfig(moduleName, cwd, stage, optional);
   const result = type.safeParse(config);
   if (!result.success) {
-    const errors: string[] = [];
     for (const error of result.error.errors) {
-      errors.push(`${error.path.join(".")}: ${error.message}`);
+      if (error.code === "invalid_union") {
+        for (const error2 of error.unionErrors) {
+          const unionErrors: string[] = [];
+          for (const error3 of error2.issues) {
+            unionErrors.push(`'${error3.path.join(".")}' => ${error3.message}`);
+          }
+          logError(`Config conditional error: ${unionErrors.join(" & ")}`);
+        }
+      } else {
+        logError(`Config error at '${error.path.join(".")}': ${error.message}`);
+      }
     }
-    logError(`Invalid config: ${errors.join(";")}`);
     process.exit(1);
   }
   return result.data;
