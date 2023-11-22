@@ -1,28 +1,27 @@
-
 aws:
   region: us-east-1
 
 inject:
   destination: ./.test-example.env
   values:
-    - name: '@'
+    - name: "@"
       configFrom: environment
 
 deploy:
-    buildPath: "./app"
-    includeGlob: "**"
-    #ignoreGlob:
+  buildPath: "./app"
+  includeGlob: "**"
+  #ignoreGlob:
 
-    s3:
-        acl: "public-read"
-        bucket: deploy-bucket
-        #prefix:
-        purge: false
-        force: false
-        # extra glob for invalidation
-        #invalidateGlob:
+  s3:
+    acl: "public-read"
+    bucket: deploy-bucket
+    #prefix:
+    purge: false
+    force: false
+    # extra glob for invalidation
+    #invalidateGlob:
 
-    cloudfront:
-        distributionId: CF000000000000
-        invalidatePaths:
-          - "/*"
+  cloudfront:
+    distributionId: CF000000000000
+    invalidatePaths:
+      - "/*"

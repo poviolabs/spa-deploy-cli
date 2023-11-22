@@ -18,10 +18,11 @@ export const ZeConfigItemValue = z
   .refine(
     (val) =>
       [
-        val.treeFrom,
+        //val.treeFrom,
         val.valueFrom,
         val.value,
         val.configFrom,
+        val.config,
         val.objectFrom,
       ].filter((x) => x !== undefined).length === 1,
     {
@@ -186,7 +187,7 @@ export async function resolveZeConfigItem(
     } else {
       // zod should prevent this
       throw new Error(
-        `Exactly one of treeFrom, valueFrom, or value must be specified`,
+        `Exactly one of valueFrom, configFrom, objectFrom, config, or value must be specified`,
       );
     }
     if (resolvedValue !== undefined) {
