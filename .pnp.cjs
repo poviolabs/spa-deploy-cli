@@ -33,6 +33,7 @@ const RAW_RUNTIME_STATE =
           ["@aws-sdk/types", "npm:3.451.0"],\
           ["@smithy/node-config-provider", "npm:2.1.6"],\
           ["@types/diff", "npm:5.0.8"],\
+          ["@types/js-yaml", "npm:4.0.9"],\
           ["@types/micromatch", "npm:4.0.6"],\
           ["@types/mime-types", "npm:2.1.4"],\
           ["@types/node", "npm:20.9.4"],\
@@ -1585,6 +1586,7 @@ const RAW_RUNTIME_STATE =
           ["@aws-sdk/types", "npm:3.451.0"],\
           ["@smithy/node-config-provider", "npm:2.1.6"],\
           ["@types/diff", "npm:5.0.8"],\
+          ["@types/js-yaml", "npm:4.0.9"],\
           ["@types/micromatch", "npm:4.0.6"],\
           ["@types/mime-types", "npm:2.1.4"],\
           ["@types/node", "npm:20.9.4"],\
@@ -2369,6 +2371,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../.yarn/berry/cache/@types-diff-npm-5.0.8-27fee077ab-10c0.zip/node_modules/@types/diff/",\
         "packageDependencies": [\
           ["@types/diff", "npm:5.0.8"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/js-yaml", [\
+      ["npm:4.0.9", {\
+        "packageLocation": "../../../.yarn/berry/cache/@types-js-yaml-npm-4.0.9-6a16d01bd2-10c0.zip/node_modules/@types/js-yaml/",\
+        "packageDependencies": [\
+          ["@types/js-yaml", "npm:4.0.9"]\
         ],\
         "linkType": "HARD"\
       }]\

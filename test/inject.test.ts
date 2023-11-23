@@ -12,7 +12,7 @@ test.skip("inject from config", async () => {
   await inject({
     verbose: true,
     pwd: new URL(".", import.meta.url).pathname,
-    stage: "nextjs",
+    stage: "myapp-dev",
     release: "xxxxxxxxx",
   });
 
@@ -29,4 +29,14 @@ APP_VERSION=0.0.1
 STATIC_URL=https://static.example.com
 NEXT_PUBLIC_SENTRY_CDN=https://public@sentry.example.com/1`,
   );
+});
+
+test.skip("inject from html", async () => {
+  await inject({
+    verbose: true,
+    pwd: new URL(".", import.meta.url).pathname,
+    stage: "myapp-stg",
+    release: "xxxxxxxxx",
+  });
+  fs.unlinkSync(path.join(__dirname, "test-example.html"));
 });

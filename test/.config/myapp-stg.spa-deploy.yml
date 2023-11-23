@@ -1,9 +1,9 @@
-
 aws:
   region: us-east-1
 
 inject:
-    destination: ./dist/index.html
-    values:
-      - name: @
-        configFrom: environment
+  source: ./app/index.html
+  destination: ./test-example.html
+  values:
+    - name: "@"
+      configFrom: environment

@@ -32,6 +32,7 @@ export const ZeConfigItemValue = z
 export const ZeConfigItem = z.object({
   name: z.string().optional(),
   destination: z.string(),
+  source: z.string().optional(),
   values: z.array(ZeConfigItemValue),
 });
 export type ZeConfigItemDto = z.output<typeof ZeConfigItem>;

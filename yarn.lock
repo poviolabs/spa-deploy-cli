@@ -1390,6 +1390,7 @@ __metadata:
     "@aws-sdk/types": "npm:3.451.0"
     "@smithy/node-config-provider": "npm:^2.1.6"
     "@types/diff": "npm:^5.0.8"
+    "@types/js-yaml": "npm:^4.0.9"
     "@types/micromatch": "npm:^4.0.6"
     "@types/mime-types": "npm:^2.1.4"
     "@types/node": "npm:^20.9.4"
@@ -2135,6 +2136,13 @@ __metadata:
   version: 5.0.8
   resolution: "@types/diff@npm:5.0.8"
   checksum: 8b3a186ca9b21d06b553168a9ff77ea95eca315606d72de5e3ece7d004ff2fb9999f714b0942d2af15509b07d4f04d20ed282e3f0640e828e8fec69592edf049
+  languageName: node
+  linkType: hard
+
+"@types/js-yaml@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "@types/js-yaml@npm:4.0.9"
+  checksum: 24de857aa8d61526bbfbbaa383aa538283ad17363fcd5bb5148e2c7f604547db36646440e739d78241ed008702a8920665d1add5618687b6743858fae00da211
   languageName: node
   linkType: hard
 

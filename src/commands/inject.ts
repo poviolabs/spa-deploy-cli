@@ -7,6 +7,7 @@ import { z } from "zod";
 import path from "path";
 import fs from "fs";
 import { dump } from "js-yaml";
+import { logWarning } from "../helpers/cli.helper.js";
 
 export async function inject(argv: {
   pwd: string;
@@ -35,7 +36,7 @@ export async function inject(argv: {
       continue;
     }
 
-    const data = await resolveZeConfigItem(
+    const envData = await resolveZeConfigItem(
       ci,
       {
         awsRegion: config.aws?.region,
@@ -45,9 +46,25 @@ export async function inject(argv: {
       argv.stage,
     );
 
-    const { destination } = ci;
+    const { destination, source } = ci;
 
-    const output = generate(path.basename(destination), data);
+    const fileName = path.basename(destination);
+
+    let output: string | undefined;
+    if (fileName.endsWith(".json")) {
+      output = generateJson(envData);
+    } else if (fileName.endsWith(".yml") || fileName.endsWith(".yaml")) {
+      output = generateYaml(envData);
+    } else if (fileName.endsWith(".env") || fileName.startsWith(".env")) {
+      output = generateIni(envData);
+    } else if (fileName.endsWith(".html")) {
+      output = generateHtml(
+        source ? path.join(argv.pwd, source) : path.join(argv.pwd, destination),
+        envData,
+      );
+    } else {
+      throw new Error(`Unknown destination file type: ${fileName}`);
+    }
     const outputPath = path.join(argv.pwd, destination);
     if (output) {
       console.log(`Writing ${outputPath}`);
@@ -56,22 +73,42 @@ export async function inject(argv: {
   }
 }
 
-export function generate(fileName: string, data: any): string {
-  if (fileName.endsWith(".json")) {
-    return JSON.stringify(data, null, 2);
-  } else if (fileName.endsWith(".yml") || fileName.endsWith(".yaml")) {
-    return dump(data);
-  } else if (fileName.endsWith(".env") || fileName.startsWith(".env")) {
-    const lines: string[] = [];
-    for (const [key, value] of Object.entries(data)) {
-      if (typeof value === "string") {
-        lines.push(`${key}=${value}`);
-      } else {
-        lines.push(`${key}=${JSON.stringify(value)}`);
-      }
-    }
-    return lines.join("\n");
+export function generateHtml(sourcePath: any, envData: any): string {
+  const html = fs.readFileSync(sourcePath, "utf8");
+
+  const injectedData = `<script id="env-data">window.__ENV__ = ${JSON.stringify(
+    envData,
+  )}</script>`;
+
+  if (html.match('<script id="env-data">')) {
+    return html.replace(/<script id="env-data">[^<]*<\/script>/, injectedData);
+  } else if (html.match("</head>")) {
+    // language=text
+    logWarning(
+      `Could not find <script id="env-data"> in ${sourcePath}. Fallback to end of </head>`,
+    );
+    return html.replace(/<\/head>/, injectedData + `</head>`);
   } else {
-    throw new Error(`Unknown destination file type: ${fileName}`);
+    throw new Error(`Could not find injection point in ${sourcePath}`);
   }
+}
+
+export function generateIni(data: any): string {
+  const lines: string[] = [];
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === "string") {
+      lines.push(`${key}=${value}`);
+    } else {
+      lines.push(`${key}=${JSON.stringify(value)}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+export function generateJson(data: any): string {
+  return JSON.stringify(data, null, 2);
+}
+
+export function generateYaml(data: any): string {
+  return dump(data);
 }

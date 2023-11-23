@@ -1,5 +1,5 @@
 import { test } from "node:test";
-import { generate } from "./inject";
+import { generateIni } from "./inject";
 import assert from "assert";
 import { resolveZeConfigItem } from "../helpers/ze-config";
 
@@ -36,7 +36,7 @@ test("inject env", async () => {
   );
 
   assert.equal(
-    generate(destination, data),
+    generateIni(data),
     `APP_RELEASE=xxxxxxxxx
 APP_STAGE=myapp-dev
 APP_VERSION=0.0.1
