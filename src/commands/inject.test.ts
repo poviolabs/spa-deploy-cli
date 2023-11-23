@@ -1,5 +1,5 @@
 import { test } from "node:test";
-import { generate } from "./inject.command";
+import { generate } from "./inject";
 import assert from "assert";
 import { resolveZeConfigItem } from "../helpers/ze-config";
 

@@ -105,9 +105,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-cloudfront@npm:3.454.0":
-  version: 3.454.0
-  resolution: "@aws-sdk/client-cloudfront@npm:3.454.0"
+"@aws-sdk/client-cloudfront@npm:3.457.0":
+  version: 3.457.0
+  resolution: "@aws-sdk/client-cloudfront@npm:3.457.0"
   dependencies:
     "@aws-crypto/sha256-browser": "npm:3.0.0"
     "@aws-crypto/sha256-js": "npm:3.0.0"
@@ -152,7 +152,7 @@ __metadata:
     "@smithy/util-waiter": "npm:^2.0.13"
     fast-xml-parser: "npm:4.2.5"
     tslib: "npm:^2.5.0"
-  checksum: 619e6af20d2082c3cc3a8df1dc877d13eed4ed025e0973d9ce208b605742bdf7d2cf3d2242e64f094db0c640b3a873f1445c23336f574a66758fc0450497f661
+  checksum: 0b7bb693ec51e201e731678745748df7c3d6ca2daf2477e456704e84af017c28b444951c1149d6e2e575132523cdfd7ff8361806ff6ee12e369a0b386bab7667
   languageName: node
   linkType: hard
 
@@ -203,9 +203,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:3.454.0":
-  version: 3.454.0
-  resolution: "@aws-sdk/client-s3@npm:3.454.0"
+"@aws-sdk/client-s3@npm:3.456.0":
+  version: 3.456.0
+  resolution: "@aws-sdk/client-s3@npm:3.456.0"
   dependencies:
     "@aws-crypto/sha1-browser": "npm:3.0.0"
     "@aws-crypto/sha256-browser": "npm:3.0.0"
@@ -264,7 +264,7 @@ __metadata:
     "@smithy/util-waiter": "npm:^2.0.13"
     fast-xml-parser: "npm:4.2.5"
     tslib: "npm:^2.5.0"
-  checksum: bf676c25371ad8600acd6446f07d3fcdfcd3adea9057839c57ed8c2df1558c4e8a6533f6ad06ff397b0ed62f9a96bc98a09c993446cfef435bb4c7de3104e438
+  checksum: 8d6451b8be568f8ac00b24a02f69c3cb1da015a5b67e4bd521156bfc2812193284ef2adc556f7b45af37ffc1c458e7bb4329f77a91bd23d931c81a558dd0649f
   languageName: node
   linkType: hard
 
@@ -1383,16 +1383,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@povio/spa-deploy-cli@workspace:."
   dependencies:
-    "@aws-sdk/client-cloudfront": "npm:3.454.0"
-    "@aws-sdk/client-s3": "npm:3.454.0"
+    "@aws-sdk/client-cloudfront": "npm:3.457.0"
+    "@aws-sdk/client-s3": "npm:3.456.0"
     "@aws-sdk/client-ssm": "npm:3.454.0"
     "@aws-sdk/credential-providers": "npm:^3.454.0"
     "@aws-sdk/types": "npm:3.451.0"
-    "@smithy/node-config-provider": "npm:^2.1.5"
+    "@smithy/node-config-provider": "npm:^2.1.6"
     "@types/diff": "npm:^5.0.8"
     "@types/micromatch": "npm:^4.0.6"
     "@types/mime-types": "npm:^2.1.4"
-    "@types/node": "npm:^20.9.3"
+    "@types/node": "npm:^20.9.4"
     "@types/prettier": "npm:^3.0.0"
     "@types/prompt-sync": "npm:^4.2.3"
     "@types/semver": "npm:^7.5.6"
@@ -1415,7 +1415,7 @@ __metadata:
     prompt-sync: "npm:^4.2.0"
     reflect-metadata: "npm:^0.1.13"
     simple-git: "npm:^3.21.0"
-    tsx: "npm:^4.2.0"
+    tsx: "npm:^4.3.0"
     typescript: "npm:^5.3.2"
     yargs: "npm:^17.7.2"
     zod: "npm:^3.22.4"
@@ -1723,6 +1723,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy/node-config-provider@npm:^2.1.6":
+  version: 2.1.6
+  resolution: "@smithy/node-config-provider@npm:2.1.6"
+  dependencies:
+    "@smithy/property-provider": "npm:^2.0.15"
+    "@smithy/shared-ini-file-loader": "npm:^2.2.5"
+    "@smithy/types": "npm:^2.6.0"
+    tslib: "npm:^2.5.0"
+  checksum: b8e4ac7772b2bc342f07477dfb0a7b7fc9e66d6c6e3c4aadd94c0bf0fced33bf2e560e44d295b1e9c097d76fe324e62c0fcf6982e5642978cee02c486c05985c
+  languageName: node
+  linkType: hard
+
 "@smithy/node-http-handler@npm:^2.1.9":
   version: 2.1.9
   resolution: "@smithy/node-http-handler@npm:2.1.9"
@@ -1753,6 +1765,16 @@ __metadata:
     "@smithy/types": "npm:^2.5.0"
     tslib: "npm:^2.5.0"
   checksum: 2404b317f3e3fe5628781db969efc43917583f25c598959525bf4fed46afc46b6f73f4bac443ae7ce61265c2bf59b4761653bc9ae1a2462176e8b2cd4bc3d85c
+  languageName: node
+  linkType: hard
+
+"@smithy/property-provider@npm:^2.0.15":
+  version: 2.0.15
+  resolution: "@smithy/property-provider@npm:2.0.15"
+  dependencies:
+    "@smithy/types": "npm:^2.6.0"
+    tslib: "npm:^2.5.0"
+  checksum: 475e539b10dcccbd41785d765128896f5e0dcea0f44a0a8b536ed1b41fdae130e991e8ae787f0b04287fc483a3a494d353cdd6b913a71af3e27f641c76dc9042
   languageName: node
   linkType: hard
 
@@ -1826,6 +1848,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@smithy/shared-ini-file-loader@npm:^2.2.5":
+  version: 2.2.5
+  resolution: "@smithy/shared-ini-file-loader@npm:2.2.5"
+  dependencies:
+    "@smithy/types": "npm:^2.6.0"
+    tslib: "npm:^2.5.0"
+  checksum: f0f127ddc70ae4ce94a7847206133d9306952bcd42a66809965810ebff0eafbb06050af564ce6cec2111c07cdbf7621754b51ae9e6fb0bf0efae713ff4abfa60
+  languageName: node
+  linkType: hard
+
 "@smithy/signature-v4@npm:^2.0.0":
   version: 2.0.12
   resolution: "@smithy/signature-v4@npm:2.0.12"
@@ -1869,6 +1901,15 @@ __metadata:
   dependencies:
     tslib: "npm:^2.5.0"
   checksum: 6522f56a9f7d6ca05b191636e7612d72c6439263c9f8af06520c30b98945a6f88b362ea624ec4641f9bfd38f04c5548c4eb03340bb06fdd03d9cca9345ad7250
+  languageName: node
+  linkType: hard
+
+"@smithy/types@npm:^2.6.0":
+  version: 2.6.0
+  resolution: "@smithy/types@npm:2.6.0"
+  dependencies:
+    tslib: "npm:^2.5.0"
+  checksum: 10c47947d8c3054ef4525da852330f1ef7030578a887bc3edd5853f65f229cf22c68512da4c952e1431dc992c4d62a21432440475c3e66ab2c7032ed03591251
   languageName: node
   linkType: hard
 
@@ -2120,12 +2161,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.9.3":
-  version: 20.9.3
-  resolution: "@types/node@npm:20.9.3"
+"@types/node@npm:^20.9.4":
+  version: 20.9.4
+  resolution: "@types/node@npm:20.9.4"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 0f61809f00241d0f1db23f8d938ef287138754819150d026e57d2246fec0330ba4b771781ff0d2ed1ea0dd42953850424b495956ff89d06d0bf3995d53da75b1
+  checksum: c8b48ace4c7e17715fa901201c98275f8e5268cf5895a8d149777eb0ec6c3ef6c831ff3917e92da5453a5dbe13f230caa50b348a0601b0d50eb9e628010c0364
   languageName: node
   linkType: hard
 
@@ -2501,13 +2542,6 @@ __metadata:
   dependencies:
     fill-range: "npm:^7.0.1"
   checksum: 321b4d675791479293264019156ca322163f02dc06e3c4cab33bb15cd43d80b51efef69b0930cfde3acd63d126ebca24cd0544fa6f261e093a0fb41ab9dda381
-  languageName: node
-  linkType: hard
-
-"buffer-from@npm:^1.0.0":
-  version: 1.1.2
-  resolution: "buffer-from@npm:1.1.2"
-  checksum: 124fff9d66d691a86d3b062eff4663fe437a9d9ee4b47b1b9e97f5a5d14f6d5399345db80f796827be7c95e70a8e765dd404b7c3ff3b3324f98e9b0c8826cc34
   languageName: node
   linkType: hard
 
@@ -4539,23 +4573,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map-support@npm:^0.5.21":
-  version: 0.5.21
-  resolution: "source-map-support@npm:0.5.21"
-  dependencies:
-    buffer-from: "npm:^1.0.0"
-    source-map: "npm:^0.6.0"
-  checksum: 9ee09942f415e0f721d6daad3917ec1516af746a8120bba7bb56278707a37f1eb8642bde456e98454b8a885023af81a16e646869975f06afc1a711fb90484e7d
-  languageName: node
-  linkType: hard
-
-"source-map@npm:^0.6.0":
-  version: 0.6.1
-  resolution: "source-map@npm:0.6.1"
-  checksum: ab55398007c5e5532957cb0beee2368529618ac0ab372d789806f5718123cc4367d57de3904b4e6a4170eb5a0b0f41373066d02ca0735a0c4d75c7d328d3e011
-  languageName: node
-  linkType: hard
-
 "ssri@npm:^8.0.0, ssri@npm:^8.0.1":
   version: 8.0.1
   resolution: "ssri@npm:8.0.1"
@@ -4785,20 +4802,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "tsx@npm:4.2.0"
+"tsx@npm:^4.3.0":
+  version: 4.3.0
+  resolution: "tsx@npm:4.3.0"
   dependencies:
     esbuild: "npm:~0.18.20"
     fsevents: "npm:~2.3.3"
     get-tsconfig: "npm:^4.7.2"
-    source-map-support: "npm:^0.5.21"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     tsx: dist/cli.mjs
-  checksum: 649321a374b50d5813f63d31fcea477416d3692b301fb7b454c97a85441b9067cda368250cd794cfc4ee5cede58096ad5f6a15d209ef0eadd14ac30bd710ea91
+  checksum: 1931cb8351a1b0d05b789b4e37491d8f1eb8c790f23094b335cce2fa5c30c700f380c787f827a32b2260d1583ce08b9fbe6d5eff549a169febea92f2ea7a4392
   languageName: node
   linkType: hard
 

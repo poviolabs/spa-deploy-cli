@@ -26,16 +26,16 @@ const RAW_RUNTIME_STATE =
       [null, {\
         "packageLocation": "./",\
         "packageDependencies": [\
-          ["@aws-sdk/client-cloudfront", "npm:3.454.0"],\
-          ["@aws-sdk/client-s3", "npm:3.454.0"],\
+          ["@aws-sdk/client-cloudfront", "npm:3.457.0"],\
+          ["@aws-sdk/client-s3", "npm:3.456.0"],\
           ["@aws-sdk/client-ssm", "npm:3.454.0"],\
           ["@aws-sdk/credential-providers", "npm:3.454.0"],\
           ["@aws-sdk/types", "npm:3.451.0"],\
-          ["@smithy/node-config-provider", "npm:2.1.5"],\
+          ["@smithy/node-config-provider", "npm:2.1.6"],\
           ["@types/diff", "npm:5.0.8"],\
           ["@types/micromatch", "npm:4.0.6"],\
           ["@types/mime-types", "npm:2.1.4"],\
-          ["@types/node", "npm:20.9.3"],\
+          ["@types/node", "npm:20.9.4"],\
           ["@types/prettier", "npm:3.0.0"],\
           ["@types/prompt-sync", "npm:4.2.3"],\
           ["@types/semver", "npm:7.5.6"],\
@@ -58,7 +58,7 @@ const RAW_RUNTIME_STATE =
           ["prompt-sync", "npm:4.2.0"],\
           ["reflect-metadata", "npm:0.1.13"],\
           ["simple-git", "npm:3.21.0"],\
-          ["tsx", "npm:4.2.0"],\
+          ["tsx", "npm:4.3.0"],\
           ["typescript", "patch:typescript@npm%3A5.3.2#optional!builtin<compat/typescript>::version=5.3.2&hash=e012d7"],\
           ["yargs", "npm:17.7.2"],\
           ["zod", "npm:3.22.4"]\
@@ -177,10 +177,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@aws-sdk/client-cloudfront", [\
-      ["npm:3.454.0", {\
-        "packageLocation": "../../../.yarn/berry/cache/@aws-sdk-client-cloudfront-npm-3.454.0-376182118a-10c0.zip/node_modules/@aws-sdk/client-cloudfront/",\
+      ["npm:3.457.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/@aws-sdk-client-cloudfront-npm-3.457.0-0335b307ef-10c0.zip/node_modules/@aws-sdk/client-cloudfront/",\
         "packageDependencies": [\
-          ["@aws-sdk/client-cloudfront", "npm:3.454.0"],\
+          ["@aws-sdk/client-cloudfront", "npm:3.457.0"],\
           ["@aws-crypto/sha256-browser", "npm:3.0.0"],\
           ["@aws-crypto/sha256-js", "npm:3.0.0"],\
           ["@aws-sdk/client-sts", "npm:3.454.0"],\
@@ -277,10 +277,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@aws-sdk/client-s3", [\
-      ["npm:3.454.0", {\
-        "packageLocation": "../../../.yarn/berry/cache/@aws-sdk-client-s3-npm-3.454.0-50adc9e6b1-10c0.zip/node_modules/@aws-sdk/client-s3/",\
+      ["npm:3.456.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/@aws-sdk-client-s3-npm-3.456.0-d0cc6fe09b-10c0.zip/node_modules/@aws-sdk/client-s3/",\
         "packageDependencies": [\
-          ["@aws-sdk/client-s3", "npm:3.454.0"],\
+          ["@aws-sdk/client-s3", "npm:3.456.0"],\
           ["@aws-crypto/sha1-browser", "npm:3.0.0"],\
           ["@aws-crypto/sha256-browser", "npm:3.0.0"],\
           ["@aws-crypto/sha256-js", "npm:3.0.0"],\
@@ -1578,16 +1578,16 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./",\
         "packageDependencies": [\
           ["@povio/spa-deploy-cli", "workspace:."],\
-          ["@aws-sdk/client-cloudfront", "npm:3.454.0"],\
-          ["@aws-sdk/client-s3", "npm:3.454.0"],\
+          ["@aws-sdk/client-cloudfront", "npm:3.457.0"],\
+          ["@aws-sdk/client-s3", "npm:3.456.0"],\
           ["@aws-sdk/client-ssm", "npm:3.454.0"],\
           ["@aws-sdk/credential-providers", "npm:3.454.0"],\
           ["@aws-sdk/types", "npm:3.451.0"],\
-          ["@smithy/node-config-provider", "npm:2.1.5"],\
+          ["@smithy/node-config-provider", "npm:2.1.6"],\
           ["@types/diff", "npm:5.0.8"],\
           ["@types/micromatch", "npm:4.0.6"],\
           ["@types/mime-types", "npm:2.1.4"],\
-          ["@types/node", "npm:20.9.3"],\
+          ["@types/node", "npm:20.9.4"],\
           ["@types/prettier", "npm:3.0.0"],\
           ["@types/prompt-sync", "npm:4.2.3"],\
           ["@types/semver", "npm:7.5.6"],\
@@ -1610,7 +1610,7 @@ const RAW_RUNTIME_STATE =
           ["prompt-sync", "npm:4.2.0"],\
           ["reflect-metadata", "npm:0.1.13"],\
           ["simple-git", "npm:3.21.0"],\
-          ["tsx", "npm:4.2.0"],\
+          ["tsx", "npm:4.3.0"],\
           ["typescript", "patch:typescript@npm%3A5.3.2#optional!builtin<compat/typescript>::version=5.3.2&hash=e012d7"],\
           ["yargs", "npm:17.7.2"],\
           ["zod", "npm:3.22.4"]\
@@ -1935,6 +1935,17 @@ const RAW_RUNTIME_STATE =
           ["tslib", "npm:2.6.2"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:2.1.6", {\
+        "packageLocation": "../../../.yarn/berry/cache/@smithy-node-config-provider-npm-2.1.6-c67cac447a-10c0.zip/node_modules/@smithy/node-config-provider/",\
+        "packageDependencies": [\
+          ["@smithy/node-config-provider", "npm:2.1.6"],\
+          ["@smithy/property-provider", "npm:2.0.15"],\
+          ["@smithy/shared-ini-file-loader", "npm:2.2.5"],\
+          ["@smithy/types", "npm:2.6.0"],\
+          ["tslib", "npm:2.6.2"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["@smithy/node-http-handler", [\
@@ -1966,6 +1977,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@smithy/property-provider", "npm:2.0.14"],\
           ["@smithy/types", "npm:2.5.0"],\
+          ["tslib", "npm:2.6.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:2.0.15", {\
+        "packageLocation": "../../../.yarn/berry/cache/@smithy-property-provider-npm-2.0.15-795426176e-10c0.zip/node_modules/@smithy/property-provider/",\
+        "packageDependencies": [\
+          ["@smithy/property-provider", "npm:2.0.15"],\
+          ["@smithy/types", "npm:2.6.0"],\
           ["tslib", "npm:2.6.2"]\
         ],\
         "linkType": "HARD"\
@@ -2042,6 +2062,15 @@ const RAW_RUNTIME_STATE =
           ["tslib", "npm:2.6.2"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:2.2.5", {\
+        "packageLocation": "../../../.yarn/berry/cache/@smithy-shared-ini-file-loader-npm-2.2.5-cdfce4ecdb-10c0.zip/node_modules/@smithy/shared-ini-file-loader/",\
+        "packageDependencies": [\
+          ["@smithy/shared-ini-file-loader", "npm:2.2.5"],\
+          ["@smithy/types", "npm:2.6.0"],\
+          ["tslib", "npm:2.6.2"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["@smithy/signature-v4", [\
@@ -2087,6 +2116,14 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../.yarn/berry/cache/@smithy-types-npm-2.5.0-72db623e41-10c0.zip/node_modules/@smithy/types/",\
         "packageDependencies": [\
           ["@smithy/types", "npm:2.5.0"],\
+          ["tslib", "npm:2.6.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:2.6.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/@smithy-types-npm-2.6.0-4810aaf7c6-10c0.zip/node_modules/@smithy/types/",\
+        "packageDependencies": [\
+          ["@smithy/types", "npm:2.6.0"],\
           ["tslib", "npm:2.6.2"]\
         ],\
         "linkType": "HARD"\
@@ -2365,10 +2402,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/node", [\
-      ["npm:20.9.3", {\
-        "packageLocation": "../../../.yarn/berry/cache/@types-node-npm-20.9.3-1bedd14426-10c0.zip/node_modules/@types/node/",\
+      ["npm:20.9.4", {\
+        "packageLocation": "../../../.yarn/berry/cache/@types-node-npm-20.9.4-a4808c97df-10c0.zip/node_modules/@types/node/",\
         "packageDependencies": [\
-          ["@types/node", "npm:20.9.3"],\
+          ["@types/node", "npm:20.9.4"],\
           ["undici-types", "npm:5.26.5"]\
         ],\
         "linkType": "HARD"\
@@ -2881,15 +2918,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["braces", "npm:3.0.2"],\
           ["fill-range", "npm:7.0.1"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["buffer-from", [\
-      ["npm:1.1.2", {\
-        "packageLocation": "../../../.yarn/berry/cache/buffer-from-npm-1.1.2-03d2f20d7e-10c0.zip/node_modules/buffer-from/",\
-        "packageDependencies": [\
-          ["buffer-from", "npm:1.1.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5105,26 +5133,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["source-map", [\
-      ["npm:0.6.1", {\
-        "packageLocation": "../../../.yarn/berry/cache/source-map-npm-0.6.1-1a3621db16-10c0.zip/node_modules/source-map/",\
-        "packageDependencies": [\
-          ["source-map", "npm:0.6.1"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
-    ["source-map-support", [\
-      ["npm:0.5.21", {\
-        "packageLocation": "../../../.yarn/berry/cache/source-map-support-npm-0.5.21-09ca99e250-10c0.zip/node_modules/source-map-support/",\
-        "packageDependencies": [\
-          ["source-map-support", "npm:0.5.21"],\
-          ["buffer-from", "npm:1.1.2"],\
-          ["source-map", "npm:0.6.1"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["ssri", [\
       ["npm:8.0.1", {\
         "packageLocation": "../../../.yarn/berry/cache/ssri-npm-8.0.1-a369e72ce2-10c0.zip/node_modules/ssri/",\
@@ -5393,14 +5401,13 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["tsx", [\
-      ["npm:4.2.0", {\
-        "packageLocation": "../../../.yarn/berry/cache/tsx-npm-4.2.0-4bf160725e-10c0.zip/node_modules/tsx/",\
+      ["npm:4.3.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/tsx-npm-4.3.0-4d56b2ede8-10c0.zip/node_modules/tsx/",\
         "packageDependencies": [\
-          ["tsx", "npm:4.2.0"],\
+          ["tsx", "npm:4.3.0"],\
           ["esbuild", "npm:0.18.20"],\
           ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
-          ["get-tsconfig", "npm:4.7.2"],\
-          ["source-map-support", "npm:0.5.21"]\
+          ["get-tsconfig", "npm:4.7.2"]\
         ],\
         "linkType": "HARD"\
       }]\
