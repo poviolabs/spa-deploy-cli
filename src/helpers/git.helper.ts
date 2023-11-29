@@ -1,12 +1,6 @@
 import fs from "fs";
 import path from "path";
-import {
-  logBanner,
-  logError,
-  logInfo,
-  logVariable,
-  logWarning,
-} from "./cli.helper.js";
+import { logBanner, logError, logVariable, logWarning } from "./cli.helper.js";
 
 async function simpleGit(p: string) {
   const { default: _simpleGit } = await import("simple-git");
@@ -25,7 +19,7 @@ export async function getGitVersion(pwd: string) {
 export async function getGitChanges(pwd: string): Promise<string | undefined> {
   try {
     const git = await simpleGit(pwd);
-    return git.raw("status", "--porcelain");
+    return await git.raw("status", "--porcelain");
   } catch (e) {
     console.log(e);
     return undefined;

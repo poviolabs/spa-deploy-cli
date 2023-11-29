@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import type { Options } from "yargs";
-
 import path from "path";
+
 import { getSha } from "./git.helper";
 
 interface IOptionProperties extends Options {

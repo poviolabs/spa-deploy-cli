@@ -9,12 +9,12 @@ import {
 } from "../helpers/aws-cloudfront.helper";
 import { SyncAction } from "../helpers/sync.helper";
 import {
-    confirm,
-    logBanner,
-    logError,
-    logInfo,
-    logVariable,
-    logWarning,
+  confirm,
+  logBanner,
+  logError,
+  logInfo,
+  logVariable,
+  logWarning,
 } from "../helpers/cli.helper";
 import {
   executeS3SyncPlan,
