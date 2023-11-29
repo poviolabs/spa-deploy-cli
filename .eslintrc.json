@@ -1,17 +1,10 @@
 {
   "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
   "parserOptions": {
-    "project": "./tsconfig.test.json",
-    "sourceType": "module"
+    "project": "./tsconfig.json"
   },
-  "plugins": [
-    "@typescript-eslint/eslint-plugin",
-    "eslint-plugin-import-helpers"
-  ],
-  "extends": [
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
-  ],
   "root": true,
   "env": {
     "node": true,
@@ -28,6 +21,7 @@
       {
         "endOfLine": "auto"
       }
-    ]
+    ],
+    "@typescript-eslint/no-explicit-any": 0
   }
 }

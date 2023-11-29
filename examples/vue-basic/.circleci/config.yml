@@ -32,7 +32,7 @@ jobs:
       #  create targeted invalidations
       - run:
           name: Deploy to S3
-          command: yarn spa-deploy-cli deploy
+          command: yarn spa-deploy deploy
 
       - run:
           name: Slack message on success

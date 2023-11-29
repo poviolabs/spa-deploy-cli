@@ -1,170 +1,109 @@
-/*
-  Invalidate CloudFront distribution
- */
-
 import yargs from "yargs";
-import process from "process";
-
-import { ReleaseStrategy, Config } from "@povio/node-stage";
-import {
-    logWarning,
-    logError,
-    logInfo,
-    logVariable,
-    logBanner,
-    getToolEnvironment,
-    confirm,
-} from "@povio/node-stage/cli";
-import { getGitChanges } from "@povio/node-stage/git";
-import {
-    Option,
-    getYargsOptions,
-    loadYargsConfig,
-    YargsOptions,
-} from "@povio/node-stage/yargs";
-import {
-    loadColors
-} from "@povio/node-stage/chalk";
-
-import {
-    executeCloudfrontInvalidation,
-    executeS3SyncPlan,
-    prepareCloudfrontInvalidation,
-    prepareS3SyncPlan,
-    printS3SyncPlan,
-} from "../helpers/aws.helpers";
-import { SyncAction } from "../helpers/sync.helper";
+import { z } from "zod";
 import { getVersion } from "../helpers/version.helper";
 
-class SpaBuildOptions implements YargsOptions {
-    @Option({ envAlias: "PWD", demandOption: true })
-    pwd!: string;
+import { getBuilder, YargOption, YargsOptions } from "../helpers/yargs.helper";
+import {
+  logBanner,
+  logInfo,
+  logVariable,
+  logWarning,
+} from "../helpers/cli.helper";
+import { executeCloudfrontInvalidation } from "../helpers/aws-cloudfront.helper";
+import { safeLoadConfig } from "../helpers/ze-config";
 
-    @Option({ envAlias: "STAGE", demandOption: true })
-    stage!: string;
+import { CloudfrontConfig } from "./invalidate";
 
-    @Option({
-        envAlias: "RELEASE",
-        envAliases: ["CIRCLE_SHA1", "BITBUCKET_COMMIT", "GITHUB_SHA"],
-        demandOption: true,
-    })
-    release!: string;
+class InvalidateOptions implements YargsOptions {
+  @YargOption({ envAlias: "RELEASE", demandOption: true })
+  release!: string;
 
-    @Option({
-        envAlias: "APP_VERSION",
-        envAliases: ["CIRCLE_TAG", "BITBUCKET_TAG"],
-        type: "string",
-        alias: "ecsVersion",
-    })
-    appVersion!: string;
+  @YargOption({ envAlias: "PWD", demandOption: true })
+  pwd!: string;
 
-    @Option({
-        default: "gitsha",
-        choices: ["gitsha", "gitsha-stage"],
-        type: "string",
-    })
-    releaseStrategy!: ReleaseStrategy;
+  @YargOption({ envAlias: "STAGE", demandOption: true })
+  stage!: string;
 
-    @Option({ envAlias: "IGNORE_GIT_CHANGES" })
-    ignoreGitChanges!: boolean;
+  @YargOption({ default: false })
+  target!: string;
 
-    @Option({ describe: "Remove all undefined files from S3" })
-    purge!: boolean;
-
-    @Option({ describe: "Replace all files even if not changed" })
-    force!: boolean;
-
-    @Option({ envAlias: "VERBOSE", default: false })
-    verbose!: boolean;
-
-    @Option({ envAlias: "CI" })
-    ci!: boolean;
-
-    config!: Config;
+  @YargOption({ envAlias: "VERBOSE", default: false })
+  verbose!: boolean;
 }
 
 export const command: yargs.CommandModule = {
-    command: "invalidate",
-    describe: "Invalidate CloudFront distribution for SPA app",
-    builder: async (y) => {
-        return y
-            .options(getYargsOptions(SpaBuildOptions))
-            .middleware(async (_argv) => {
-                return (await loadYargsConfig(
-                    SpaBuildOptions,
-                    _argv as any,
-                    "spaDeploy"
-                )) as any;
-            }, true);
-    },
-    handler: async (_argv) => {
-        const argv = (await _argv) as unknown as SpaBuildOptions;
+  command: "invalidate [target]",
+  describe: "Deploy SPA to target",
+  builder: getBuilder(InvalidateOptions),
+  handler: async (_argv) => {
+    const argv = (await _argv) as unknown as InvalidateOptions;
+    if (argv.verbose) {
+      logBanner(`SPA Deploy ${getVersion()}`);
+      logVariable("nodejs", process.version);
+      logVariable("pwd", argv.pwd);
+      logVariable("stage", argv.stage);
+    }
 
-        await loadColors();
+    const InvalidateConfigItem = z.object({
+      name: z.string(),
+      cloudfront: CloudfrontConfig,
+    });
 
-        const { spaDeploy } = argv.config;
+    const config = await safeLoadConfig(
+      "spa-deploy",
+      argv.pwd,
+      argv.stage,
+      z.object({
+        deploy: z
+          .union([
+            InvalidateConfigItem.extend({ name: z.string().optional() }),
+            InvalidateConfigItem.array(),
+          ])
+          .transform((val) => (Array.isArray(val) ? val : [val])),
+        aws: z
+          .object({
+            region: z.string().optional(),
+            accountId: z.string().optional(),
+            endpoint: z.string().optional(),
+          })
+          .optional(),
+      }),
+      false,
+    );
 
-        const awsRegion = spaDeploy?.aws?.region;
-        if (!awsRegion) {
-            logError(`AWS Region is not set`);
-            return process.exit(1);
+    for (const d of config.deploy) {
+      if (argv.target && d.name !== argv.target) {
+        continue;
+      }
+
+      if (!d.cloudfront) {
+        continue;
+      }
+
+      const region = d.cloudfront.region || config.aws?.region;
+      if (!region) {
+        logWarning("Missing region");
+        continue;
+      }
+
+      const cloudfrontInvalidations = d.cloudfront.invalidatePaths || [];
+      const cloudfrontIds = d.cloudfront.distributionId || [];
+      if (cloudfrontInvalidations.length > 0) {
+        logBanner(`Cloudfront invalidations`);
+        for (const i of cloudfrontInvalidations) {
+          console.log(i);
         }
-        logVariable("app__aws__region", awsRegion);
-
-        // cloudfront plan
-        const cloudfrontInvalidations = parseArray<string>(spaDeploy?.cloudfront?.invalidatePaths);
-
-        const cloudfrontId = parseArray<string>(
-            spaDeploy?.cloudfront?.distributionId
+        if (cloudfrontIds.length < 1) {
+          logWarning(`Cloudfront distributionId is not set`);
+        }
+        await executeCloudfrontInvalidation(
+          cloudfrontInvalidations,
+          cloudfrontIds,
+          region,
         );
-
-        if (cloudfrontInvalidations.length < 1) {
-            logInfo('No validations set. Invalidate everything')
-            cloudfrontInvalidations.push('/*');
-        }
-
-
-        if (cloudfrontInvalidations.length > 0) {
-            logBanner(`CloudFront invalidations`);
-
-            for (const i of cloudfrontInvalidations) {
-                logInfo(i);
-            }
-        }
-
-        // deploy
-        logBanner(`Deploy`);
-        if (cloudfrontId.length < 1 && cloudfrontInvalidations.length > 0) {
-            logWarning("No cloudfront set - will not invalidate cache!");
-            return;
-        }
-
-
-        if (!argv.ci) {
-            if (!(await confirm("Press enter to deploy..."))) {
-                logInfo("Canceled");
-                return;
-            }
-        }
-
-        if (cloudfrontInvalidations.length > 0 && cloudfrontId.length > 0) {
-            await executeCloudfrontInvalidation(
-                cloudfrontInvalidations,
-                cloudfrontId,
-                awsRegion
-            );
-        }
-
-        logInfo("Done!");
-    },
+      } else {
+        logInfo(`No cloudfront invalidations`);
+      }
+    }
+  },
 };
-
-export function parseArray<T>(input: any): T[] {
-    if (input === undefined || input === null) {
-        return [];
-    }
-    if (Array.isArray(input)) {
-        return input;
-    }
-    return [input];
-}

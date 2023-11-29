@@ -1,0 +1,5 @@
+APP_RELEASE: ${func:release}
+APP_STAGE: ${func:stage}
+APP_VERSION: ${env:APP_VERSION}
+STATIC_URL: https://static.example.com
+NEXT_PUBLIC_SENTRY_CDN: https://public@sentry.example.com/1

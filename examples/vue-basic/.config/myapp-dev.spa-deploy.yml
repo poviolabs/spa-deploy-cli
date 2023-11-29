@@ -1,0 +1,19 @@
+aws:
+  region: us-east-1
+  accountId: "00000000000"
+
+inject:
+  destination: ./dist/index.html
+  values:
+    - name: "@"
+      config:
+        SENTRY_DSN: asd3v5y46bu5i7vewcrev
+
+deploy:
+  buildPath: "./dist"
+  s3:
+    acl: "public-read"
+    bucket: EXAMPLE_BUCKET
+
+  cloudfront:
+    distributionId: EXAMPLE_DIST_ID

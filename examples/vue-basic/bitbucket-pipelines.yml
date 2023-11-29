@@ -23,9 +23,5 @@ pipelines:
       - step:
           caches:
             - deploy
-          variables:
-            STAGE: myapp-dev
-            # add variables to config.yaml
-            # add secrets to bitbucket environment
           script:
-            - yarn spa-deploy-cli deploy
+            - yarn spa-deploy deploy --stage myapp-dev
