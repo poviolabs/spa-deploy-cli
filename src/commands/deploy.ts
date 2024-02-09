@@ -105,13 +105,9 @@ export async function deploy(argv: {
     argv.stage,
     z.object({
       deploy: DeployConfigs,
-      aws: z
-        .object({
-          region: z.string().optional(),
-          accountId: z.string().optional(),
-          endpoint: z.string().optional(),
-        })
-        .optional(),
+      region: z.string().optional().describe("AWS Region"),
+      accountId: z.string().optional().describe("AWS Account ID"),
+      endpoint: z.string().optional().describe("AWS services endpoint"),
     }),
     false,
   );
@@ -134,12 +130,12 @@ export async function deploy(argv: {
     let s3SyncPlan: S3SyncPlan | undefined = undefined;
 
     if (d.s3) {
-      const endpoint = d.s3.endpoint || config.aws?.endpoint;
+      const endpoint = d.s3.endpoint || config.endpoint;
       if (endpoint) {
         logVariable("deploy__s3__endpoint", endpoint);
       }
 
-      const region = d.s3.region || config.aws?.region;
+      const region = d.s3.region || config.region;
       logVariable("deploy__s3__region", region);
       if (!region) {
         logError("AWS Region is not set");
@@ -228,7 +224,7 @@ export async function deploy(argv: {
     await executeS3SyncPlan(s3SyncPlan);
 
     if (d.cloudfront) {
-      const region = d.cloudfront.region || config.aws?.region;
+      const region = d.cloudfront.region || config.region;
       logVariable("deploy__cloudfront__region", region);
       if (!region) {
         logWarning("AWS Region is not set");

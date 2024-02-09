@@ -1,5 +1,5 @@
 import { test } from "node:test";
-import { inject } from "../src/commands/inject";
+import { bootstrap } from "../src/commands/bootstrap";
 import fs from "fs";
 import path from "path";
 import assert from "assert";
@@ -9,7 +9,7 @@ const __dirname = new URL(".", import.meta.url).pathname;
 process.env.APP_VERSION = "0.0.1";
 
 test.skip("inject from config", async () => {
-  await inject({
+  await bootstrap({
     verbose: true,
     pwd: new URL(".", import.meta.url).pathname,
     stage: "myapp-dev",
@@ -32,7 +32,7 @@ NEXT_PUBLIC_SENTRY_CDN=https://public@sentry.example.com/1`,
 });
 
 test.skip("inject from html", async () => {
-  await inject({
+  await bootstrap({
     verbose: true,
     pwd: new URL(".", import.meta.url).pathname,
     stage: "myapp-stg",

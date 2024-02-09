@@ -9,29 +9,25 @@ import fs from "fs";
 import { dump } from "js-yaml";
 import { logWarning } from "../helpers/cli.helper.js";
 
-export async function inject(argv: {
+export async function bootstrap(argv: {
   pwd: string;
   stage: string;
   release: string;
-  target?: string;
   verbose?: boolean;
+  target?: string;
 }) {
   const config = await safeLoadConfig(
     "spa-deploy",
     argv.pwd,
     argv.stage,
     z.object({
-      inject: ZeConfigs,
-      aws: z
-        .object({
-          region: z.string().optional(),
-        })
-        .optional(),
+      region: z.string(),
+      configs: ZeConfigs,
     }),
     false,
   );
 
-  for (const ci of config.inject) {
+  for (const ci of config.configs) {
     if (argv.target && ci.name !== argv.target) {
       continue;
     }
@@ -39,7 +35,7 @@ export async function inject(argv: {
     const envData = await resolveZeConfigItem(
       ci,
       {
-        awsRegion: config.aws?.region,
+        awsRegion: config.region,
         release: argv.release,
       },
       argv.pwd,

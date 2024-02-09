@@ -143,10 +143,18 @@ export async function resolveZeConfigItem(
       resolvedValue = value;
     } else if (valueFrom) {
       // resolve the value
-      resolvedValue = await resolveResource(valueFrom, { ...options, stage });
+      resolvedValue = await resolveResource(valueFrom, {
+        ...options,
+        stage,
+        cwd,
+      });
     } else if (objectFrom) {
       // resolve the object and merge
-      resolvedValue = await resolveResource(objectFrom, { ...options, stage });
+      resolvedValue = await resolveResource(objectFrom, {
+        ...options,
+        stage,
+        cwd,
+      });
       resolvedValue = JSON.parse(resolvedValue);
     } else if (treeFrom) {
       throw new Error(`treeFrom is not supported yet`);
@@ -178,12 +186,14 @@ export async function resolveZeConfigItem(
       resolvedValue = await resolveConfig(unresolvedValue, {
         ...options,
         stage,
+        cwd,
       });
     } else if (options) {
       // get the template and resolve the values
       resolvedValue = await resolveConfig(config, {
         ...options,
         stage,
+        cwd,
       });
     } else {
       // zod should prevent this
@@ -222,7 +232,12 @@ export async function resolveZeConfigItem(
  */
 export async function resolveResource(
   value: string,
-  config: { awsRegion?: string; release?: string; stage?: string },
+  config: {
+    awsRegion?: string;
+    release?: string;
+    stage?: string;
+    cwd?: string;
+  },
   key: string = "@",
 ): Promise<any> {
   if (value.startsWith("arn:aws:ssm")) {
@@ -248,6 +263,15 @@ export async function resolveResource(
         throw new Error(`Unknown function '${value}' at '${key}'`);
     }
   }
+  if (value.startsWith("config:")) {
+    if (!config.cwd) {
+      throw new Error("cwd not provided");
+    }
+    if (!config.stage) {
+      throw new Error("stage not provided");
+    }
+    return loadConfig(value.slice(7), config.cwd, config.stage, false);
+  }
   throw new Error(`Cannot resolve resource '${value}' at '${key}'`);
 }
 
@@ -256,7 +280,7 @@ export async function resolveResource(
  */
 export async function resolveConfig(
   value: any,
-  config: { awsRegion?: string; stage?: string },
+  config: { awsRegion?: string; stage?: string; cwd?: string },
   key?: string,
 ) {
   if (value !== null && value !== undefined) {

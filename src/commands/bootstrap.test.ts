@@ -1,5 +1,5 @@
 import { test } from "node:test";
-import { generateIni } from "./inject";
+import { generateIni } from "./bootstrap";
 import assert from "assert";
 import { resolveZeConfigItem } from "../helpers/ze-config";
 
@@ -7,7 +7,7 @@ const __dirname = new URL(".", import.meta.url).pathname;
 
 process.env.APP_VERSION = "0.0.1";
 
-test("inject env", async () => {
+test("bootstrap env", async () => {
   const destination = "./.test-example.env";
 
   const data = await resolveZeConfigItem(

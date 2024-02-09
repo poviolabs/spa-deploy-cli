@@ -3,7 +3,7 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { command as injectCommand } from "./commands/inject.command";
+import { command as bootstrapCommand } from "./commands/bootstrap.command";
 import { command as deployCommand } from "./commands/deploy.command";
 import { command as invalidateCommand } from "./commands/invalidate.command";
 import { logError, logInfo } from "./helpers/cli.helper";
@@ -13,7 +13,7 @@ import { getVersion } from "./helpers/version.helper";
 yargs(hideBin(process.argv))
   .version(getVersion() || "unknown")
   .scriptName("spa-deploy")
-  .command(injectCommand)
+  .command(bootstrapCommand)
   .command(deployCommand)
   .command(invalidateCommand)
   .help()

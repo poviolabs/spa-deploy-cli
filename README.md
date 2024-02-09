@@ -31,6 +31,8 @@ npm i -g @povio/spa-deploy-cli@4 --force
 # Configure
 
 ```yaml
+region: us-east-1
+accountId: 000000000000
 
 # Static SPA deploy config
 deploy:
@@ -52,7 +54,7 @@ deploy:
         invalidatePaths: "/*"
 
 # Environment file config
-inject:
+configs:
     # Write into env file (Next.js)
     #  destination: ./.env.local
     
@@ -82,9 +84,8 @@ inject:
       - name: database__host
         valueFrom: env:DATABASE_HOST
 
-aws:
-    region: us-east-1
-    accountId: 000000000000
+
+
 ```
 
 ### Example
@@ -112,7 +113,7 @@ NEXT_PUBLIC_SENTRY_DSN=https://public@sentry.example.com/1
 ## Injecting the environment
 
 ```bash
-yarn spa-deploy inject --stage myapp-stg
+yarn spa-deploy bootstrap --stage myapp-stg
 ```
 
 ### Pure SPA or after build time configuration
@@ -146,12 +147,12 @@ yarn test
 
 # run sources with tsx
 yarn start --help
-yarn start inject --pwd ./test --stage myapp-dev
+yarn start bootstrap --pwd ./test --stage myapp-dev
 
 # build new version
 yarn build
 
 # test build
 yarn start:prod --help
-yarn start:dist inject --pwd ./test --stage myapp-dev
+yarn start:dist bootstrap --pwd ./test --stage myapp-dev
 ```

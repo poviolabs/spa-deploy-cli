@@ -1,7 +1,7 @@
 aws:
   region: us-east-1
 
-inject:
+bootstrap:
   source: ./app/index.html
   destination: ./test-example.html
   values:

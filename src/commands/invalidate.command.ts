@@ -60,13 +60,9 @@ export const command: yargs.CommandModule = {
             InvalidateConfigItem.array(),
           ])
           .transform((val) => (Array.isArray(val) ? val : [val])),
-        aws: z
-          .object({
-            region: z.string().optional(),
-            accountId: z.string().optional(),
-            endpoint: z.string().optional(),
-          })
-          .optional(),
+        region: z.string().optional(),
+        accountId: z.string().optional(),
+        endpoint: z.string().optional(),
       }),
       false,
     );
@@ -80,7 +76,7 @@ export const command: yargs.CommandModule = {
         continue;
       }
 
-      const region = d.cloudfront.region || config.aws?.region;
+      const region = d.cloudfront.region || config.region;
       if (!region) {
         logWarning("Missing region");
         continue;

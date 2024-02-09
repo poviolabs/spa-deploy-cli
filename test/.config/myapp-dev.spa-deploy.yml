@@ -1,7 +1,7 @@
 aws:
   region: us-east-1
 
-inject:
+bootstrap:
   destination: ./.test-example.env
   values:
     - name: "@"

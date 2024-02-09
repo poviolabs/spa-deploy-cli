@@ -1,8 +1,7 @@
-aws:
-  region: us-east-1
-  accountId: "00000000000"
+region: us-east-1
+accountId: "00000000000"
 
-inject:
+configs:
   destination: ./dist/index.html
   values:
     - name: "@"
