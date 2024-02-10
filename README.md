@@ -70,7 +70,7 @@ configs:
         # load config from ./.config/${stage}.base.template.env
         # and interpolate ${arn:aws:ssm..} and ${env:ENV_VALUE} values
         # load them onto the root
-      - name: @
+      - name: "@"
         configFrom: base.template
     
         # simple value mapping

@@ -215,6 +215,7 @@ export async function deploy(argv: {
     }
 
     if (!argv.ci) {
+      logBanner(`Ready to deploy`);
       if (!(await confirm("Press enter to deploy..."))) {
         logInfo("Canceled");
         return;

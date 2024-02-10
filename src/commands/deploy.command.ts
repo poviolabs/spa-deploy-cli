@@ -64,6 +64,7 @@ export const command: yargs.CommandModule = {
       verbose: argv.verbose,
       purge: argv.purge,
       force: argv.force,
+      ci: argv.ci,
     });
   },
 };
