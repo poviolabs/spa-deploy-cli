@@ -98,7 +98,10 @@ export async function loadConfig(
     `${stage}.${moduleName}.local`,
   ]) {
     const { search } = cosmiconfigSync(moduleName, {
-      searchPlaces: [`${name}.json`, `${name}.yml`],
+      // default cosmiconfig searchPlaces
+      searchPlaces: [".json", ".yaml", ".yml", ".js", ".ts", ".cjs"].map(
+        (x) => `${name}${x}`,
+      ),
       stopDir: cwd,
     });
 
