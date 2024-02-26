@@ -29,12 +29,14 @@ export const ZeConfigItemValue = z
       message: "Exactly one of treeFrom, valueFrom, or value must be specified",
     },
   );
+export const ZeConfigItemValues = z.array(ZeConfigItemValue);
 export const ZeConfigItem = z.object({
   name: z.string().optional(),
   destination: z.string(),
   source: z.string().optional(),
-  values: z.array(ZeConfigItemValue),
+  values: ZeConfigItemValues,
 });
+export type ZeConfigItemValuesDto = z.output<typeof ZeConfigItemValues>;
 export type ZeConfigItemDto = z.output<typeof ZeConfigItem>;
 
 export const ZeConfigs = z
@@ -125,7 +127,7 @@ export async function loadConfig(
 }
 
 export async function resolveZeConfigItem(
-  { values }: ZeConfigItemDto,
+  { values }: { values: ZeConfigItemValuesDto },
   options: { awsRegion?: string; release?: string },
   cwd: string,
   stage: string,

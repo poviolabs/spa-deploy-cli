@@ -45,11 +45,13 @@ export function getYargsOption<T>(
   return options;
 }
 
-export function getBuilder(options) {
-  return async (y) => {
-    return y.options(getYargsOptions(options)).middleware(async (_argv) => {
-      return (await loadYargsConfig(options, _argv as any)) as any;
-    }, true);
+export function getBuilder(options: any) {
+  return async (y: any) => {
+    return y
+      .options(getYargsOptions(options))
+      .middleware(async (_argv: any) => {
+        return (await loadYargsConfig(options, _argv as any)) as any;
+      }, true);
   };
 }
 

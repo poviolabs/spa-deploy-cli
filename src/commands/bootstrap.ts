@@ -89,16 +89,26 @@ export function generateHtml(sourcePath: any, envData: any): string {
   }
 }
 
-export function generateIni(data: any): string {
-  const lines: string[] = [];
-  for (const [key, value] of Object.entries(data)) {
-    if (typeof value === "string") {
-      lines.push(`${key}=${value}`);
-    } else {
-      lines.push(`${key}=${JSON.stringify(value)}`);
-    }
-  }
-  return lines.join("\n");
+export function generateIni(data: Record<string, any>): string {
+  // convert a dictionary to a .env file
+  //  - format of the file is ${key}="${value}"
+  //  - encode values into single line
+  //  - escape values so that we preserve the format of the ini file
+  return Object.entries(data)
+    .map(([key, value]) => {
+      if (typeof value === "object") {
+        return `${key}="${JSON.stringify(value)
+          .replace(/"/g, '\\"')
+          .replace(/\r?\n/g, "\\n")}"`;
+      }
+      return `${key}="${value
+        .toString()
+        // escape quotes
+        .replace(/"/g, '\\"')
+        //  and newlines
+        .replace(/\r?\n/g, "\\n")}"`;
+    })
+    .join("\n");
 }
 
 export function generateJson(data: any): string {
