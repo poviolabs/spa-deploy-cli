@@ -1,6 +1,6 @@
 {
   "name": "@povio/spa-deploy-cli",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "bin": {
     "spa-deploy": "./dist/sh.js"
   },

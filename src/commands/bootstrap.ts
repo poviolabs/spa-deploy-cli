@@ -7,7 +7,7 @@ import { z } from "zod";
 import path from "path";
 import fs from "fs";
 import { dump } from "js-yaml";
-import { logWarning } from "../helpers/cli.helper";
+import { logError, logWarning } from "../helpers/cli.helper";
 
 export async function bootstrap(argv: {
   pwd: string;
@@ -96,21 +96,32 @@ export function generateIni(data: Record<string, any>): string {
   //  - escape values so that we preserve the format of the ini file
   return Object.entries(data)
     .map(([key, value]) => {
-      if (!value) {
-        logWarning(`${key} is not set`)
-        return '';
+      try {
+        switch (typeof value) {
+          case "object":
+            return `${key}="${JSON.stringify(value)
+              .replace(/"/g, '\\"')
+              .replace(/\r?\n/g, "\\n")}"`;
+          case "string":
+          case "boolean":
+          case "number":
+            return `${key}="${value
+              .toString()
+              // escape quotes
+              .replace(/"/g, '\\"')
+              //  and newlines
+              .replace(/\r?\n/g, "\\n")}"`;
+          case "undefined":
+            logWarning(`${key} is undefined`);
+            return "";
+          default:
+            logWarning(`${key} has invalid value:`);
+            console.log(value);
+            return "";
+        }
+      } catch (e: any) {
+        logError(e);
       }
-      if (typeof value === "object") {
-        return `${key}="${JSON.stringify(value)
-          .replace(/"/g, '\\"')
-          .replace(/\r?\n/g, "\\n")}"`;
-      }
-      return `${key}="${value
-        .toString()
-        // escape quotes
-        .replace(/"/g, '\\"')
-        //  and newlines
-        .replace(/\r?\n/g, "\\n")}"`;
     })
     .join("\n");
 }
