@@ -61,7 +61,10 @@ deploy:
         # re-upload even if the file is the same (also updates cacheControl)
         #force: false
 
-        # changes should not invalidate cloudfront cache
+        # Control individual file invalidations when files change during deployment
+        # false (default): create individual CloudFront invalidation paths for each changed file
+        # true: skip individual file invalidations, rely only on cloudfront.invalidatePaths
+        # Set to true when using wildcard invalidatePaths (e.g. "/*") to reduce CloudFront costs
         #skipChangesInvalidation: false
         
         # default cache control
