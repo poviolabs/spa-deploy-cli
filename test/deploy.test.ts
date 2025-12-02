@@ -1,325 +1,259 @@
-import { test, describe, afterAll, beforeAll } from "vitest";
 import { join } from "node:path";
-import { mkdirSync, rmSync, writeFileSync, readFileSync } from "node:fs";
+import type { S3Client } from "@aws-sdk/client-s3";
+import { afterEach, beforeAll, describe, expect, test } from "vitest";
+
+import { Logger } from "../src/helpers/logger";
+import { executeDeploy } from "../src/lib/deploy";
+import { SyncAction } from "../src/lib/deploy.types";
+import { getS3ClientInstance, uploadFileToS3 } from "../src/lib/s3";
 import {
-  deployTarget,
-  getDeployConfig,
-  IDeployConfigItem,
-} from "../src/commands/deploy";
+    TEST_BUCKET,
+    cleanupS3Bucket,
+    getTestAwsContext,
+} from "./s3.helpers";
 
-const pwd = join(process.cwd(), "test");
-const tmpPath = join(
-  process.cwd(),
-  `.tmp/test/${Math.random().toString(36).substring(7)}`,
-);
-const rootConfig = await getDeployConfig({ pwd, stage: "myapp-dev" });
+const __dirname = new URL(".", import.meta.url).pathname;
+const testDir = join(__dirname, "app");
 
-// check if endpoint is reachable
-const shouldSkip =
-  !rootConfig.endpoint ||
-  (await fetch(rootConfig.endpoint)
-    .catch((e) => true)
-    .then(() => false));
+describe("deploy.ts - executeDeploy", () => {
+    const logger = new Logger(false);
+    let s3Client: S3Client;
 
-function makeConfig(
-  config: Omit<Partial<IDeployConfigItem>, "s3"> & {
-    s3?: Partial<IDeployConfigItem["s3"]>;
-  },
-) {
-  return {
-    deploy: [
-      {
-        name: "default",
-        buildPath: "app",
-        ...config,
-        s3: {
-          region: "us-west-2",
-          bucket: "deploy-bucket",
-          endpoint: rootConfig.endpoint,
-          ...config.s3,
-        },
-      },
-    ],
-  };
-}
+    const s3Config = {
+        bucket: TEST_BUCKET,
+        context: getTestAwsContext(),
+    };
 
-describe("deploy command", ({ skip }) => {
-  if (shouldSkip)
-    return skip("S3 Endpoint not reachable, is S3Mock Docker running?");
+    beforeAll(async () => {
+        s3Client = getS3ClientInstance(getTestAwsContext());
+    });
 
-  beforeAll(() => {
-    mkdirSync(tmpPath, { recursive: true });
-  });
+    afterEach(async () => {
+        await cleanupS3Bucket(s3Client, TEST_BUCKET);
+    });
 
-  afterAll(() => {
-    // cleanup
-    try {
-      rmSync(tmpPath, { recursive: true, force: true });
-    } catch (e) {}
-  });
+    test("should execute full deployment pipeline with metadata and options", async () => {
 
-  const testArgs = {
-    pwd,
-    ci: true,
-  };
+        // Test basic deployment with metadata (cache control, invalidate)
+        const result1 = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.html"],
+                        cacheControl: "no-cache",
+                        invalidate: true,
+                    },
+                    {
+                        includeGlob: ["**/*.css"],
+                        cacheControl: "max-age=3600",
+                    },
+                ],
+                s3: {
+                    ...s3Config,
+                },
+            },
+            {
+                apply: true
+            },
+            logger
+        );
 
-  test("deploy", async ({ expect }) => {
-    const prefix = `test-${Math.random().toString(36).substring(7)}/`;
-
-    {
-      // upload initial batch
-      const results = await deployTarget(
-        "default",
-        makeConfig({ s3: { prefix } }),
-        testArgs,
-      );
-      expect(results).toEqual(expect.objectContaining({ result: "success" }));
-      if (!results) return;
-      const { s3SyncPlan } = results;
-      expect(s3SyncPlan).toEqual(
-        expect.objectContaining({
-          items: expect.arrayContaining([
+        expect(result1).toEqual(
             expect.objectContaining({
-              key: `${prefix}global.css`,
-              contentDisposition: "inline",
-              contentType: "text/css",
-              action: "Create",
-              acl: undefined,
-              cacheControl: "max-age=2628000, public",
-              invalidate: false,
-              cache: true,
-            }),
-          ]),
-        }),
-      );
-    }
+                result: "success",
+                invalidationIds: [],
+                files: expect.any(Map),
+            })
+        );
+        const fileKeys = Array.from(result1.files.keys());
+        expect(fileKeys).toEqual(expect.arrayContaining(["index.html", "global.css"]));
+        expect(result1.files.size).toBeGreaterThanOrEqual(2);
 
-    {
-      // nothing to do
-      const results = await deployTarget(
-        "default",
-        makeConfig({ s3: { prefix } }),
-        testArgs,
-      );
-      expect(results).toEqual(
-        expect.objectContaining({ result: "no-changes" }),
-      );
-    }
+        // Test priority-based upload
+        const result2 = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.html"],
+                        priority: 1,
+                    },
+                    {
+                        includeGlob: ["**/*.css"],
+                        priority: 2,
+                    },
+                ],
+                s3: s3Config,
+            },
+            {
+                apply: true
+            },
+            logger
+        );
 
-    {
-      // make some changes
+        expect(result2.result).toBe("success");
+        const priorities = ["index.html", "global.css"].map(key => result2.files.get(key)?.priority);
+        expect(priorities).toEqual([1, 2]);
 
-      // copy all files to .tmp
-      const testTmpPath = join(tmpPath, prefix);
-      mkdirSync(join(testTmpPath, "app"), { recursive: true });
+        // Test S3 prefix
+        const result3 = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.html"],
+                    },
+                ],
+                s3: {
+                    ...s3Config,
+                    prefix: "app/",
+                },
+            },
+            {
+                apply: true
+            },
+            logger
+        );
 
-      writeFileSync(
-        join(testTmpPath, "app/global.css"),
-        // make small change
-        readFileSync(join(pwd, "app/global.css")) + " ",
-      );
+        expect(result3.result).toBe("success");
+        expect(result3.files.has("index.html")).toBe(true);
+    });
 
-      const results = await deployTarget(
-        "default",
-        makeConfig({ s3: { prefix } }),
-        { ...testArgs, pwd: testTmpPath },
-      );
-      expect(results).toEqual(expect.objectContaining({ result: "success" }));
-      if (!results) return;
-      const { s3SyncPlan } = results;
-      expect(s3SyncPlan).toEqual(
-        expect.objectContaining({
-          items: expect.arrayContaining([
-            expect.objectContaining({
-              acl: undefined,
-              action: "Update",
-              cache: true,
-              cacheControl: "max-age=2628000, public",
-              contentDisposition: "inline",
-              contentType: "text/css",
-              invalidate: true,
-              key: `${prefix}global.css`,
-            }),
-          ]),
-        }),
-      );
-    }
-  });
+    test("should handle force flag and update actions", async () => {
+        const result = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.html"],
+                    },
+                ],
+                s3: s3Config,
+            },
+            {
+                apply: true,
+                force: true
+            },
+            logger
+        );
 
-  test("deploy with cacheControl", async ({ expect }) => {
-    const prefix = `test-${Math.random().toString(36).substring(7)}/`;
+        expect(result).toMatchObject({
+            result: "success",
+        });
+        expect(result.files.get("index.html")).toMatchObject({
+            action: SyncAction.update,
+        });
+    });
 
-    {
-      const results = await deployTarget(
-        "default",
-        makeConfig({
-          s3: {
-            prefix,
-            cacheControl: "max-age=2000, public",
-            cacheControlGlob: [
-              { glob: "**/*.html", cacheControl: "must-revalidate" },
-            ],
-          },
-        }),
-        testArgs,
-      );
-      expect(results).toEqual(expect.objectContaining({ result: "success" }));
-      if (!results) return;
-      const { s3SyncPlan } = results;
-      expect(s3SyncPlan).toEqual(
-        expect.objectContaining({
-          items: expect.arrayContaining([
-            expect.objectContaining({
-              cache: true,
-              cacheControl: "max-age=2000, public",
-              invalidate: false,
-              key: `${prefix}global.css`,
-            }),
-            expect.objectContaining({
-              cache: false,
-              cacheControl: "must-revalidate",
-              invalidate: false,
-              key: `${prefix}index.html`,
-            }),
-          ]),
-        }),
-      );
-    }
+    test("should not apply changes when apply is false", async () => {
+        const result = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.html"],
+                    },
+                ],
+                s3: s3Config,
+            },
+            {},
+            logger
+        );
+        expect(result).toMatchObject({
+            result: "no-changes",
+            files: expect.any(Map),
+        });
+    });
 
-    {
-      const results = await deployTarget(
-        "default",
-        makeConfig({
-          s3: {
-            prefix,
-            cacheControl: "max-age=2000, public",
-            cacheControlGlob: [
-              { glob: "**/*.html", cacheControl: "must-revalidate" }, // will be overridden by invalidateGlob
-              { glob: "**/*.ico", cacheControl: "max-age=3000, public" },
-            ],
-            invalidateGlob: ["**/*.html"],
-            force: true,
-          },
-        }),
-        testArgs,
-      );
-      expect(results).toEqual(expect.objectContaining({ result: "success" }));
-      if (!results) return;
-      const { s3SyncPlan } = results;
-      expect(s3SyncPlan).toEqual(
-        expect.objectContaining({
-          items: expect.arrayContaining([
-            expect.objectContaining({
-              cache: true,
-              cacheControl: "max-age=3000, public",
-              invalidate: true,
-              key: `${prefix}favicon.ico`,
-            }),
-            expect.objectContaining({
-              cache: true,
-              cacheControl: "max-age=2000, public",
-              invalidate: true,
-              key: `${prefix}global.css`,
-            }),
-            expect.objectContaining({
-              cache: false,
-              cacheControl: "public, must-revalidate",
-              invalidate: true,
-              key: `${prefix}index.html`,
-            }),
-          ]),
-        }),
-      );
-    }
-  });
+    test("should handle global purge flags", async () => {
 
-  test("deploy include/exclude", async ({ expect }) => {
-    const prefix = `test-${Math.random().toString(36).substring(7)}/`;
+        const dummyKey = `dummy-${(new Date()).getTime()}.html`;
 
-    {
-      const results = await deployTarget(
-        "default",
-        makeConfig({
-          includeGlob: ["**/*.(css|ico)"],
-          s3: { prefix },
-        }),
-        { ...testArgs, dryRun: true },
-      );
-      const items = results?.s3SyncPlan?.items.filter(
-        (x) => x.action !== "Ignore",
-      );
-      expect(items).toBeDefined();
-      if (!items) return;
-      expect(items).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            key: `${prefix}global.css`,
-            action: "Create",
-          }),
-          expect.objectContaining({
-            key: `${prefix}global.css`,
-            action: "Create",
-          }),
-        ]),
-      );
-      expect(items.length).toBe(2);
-    }
-    {
-      const results = await deployTarget(
-        "default",
-        makeConfig({
-          ignoreGlob: ["*.html"],
-          s3: { prefix },
-        }),
-        { ...testArgs, dryRun: true },
-      );
-      const items = results?.s3SyncPlan?.items.filter(
-        (x) => x.action !== "Ignore",
-      );
-      expect(items).toBeDefined();
-      if (!items) return;
-      expect(items).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            key: `${prefix}global.css`,
-            action: "Create",
-          }),
-          expect.objectContaining({
-            key: `${prefix}favicon.ico`,
-            action: "Create",
-          }),
-        ]),
-      );
-      expect(items.length).toBe(2);
-    }
-    {
-      const results = await deployTarget(
-        "default",
-        makeConfig({
-          ignoreGlob: [
-            "*.html",
-            // ignore other tests
-            "test*/**",
-          ],
-        }),
-        { ...testArgs, dryRun: true },
-      );
-      const items = results?.s3SyncPlan?.items.filter(
-        (x) => x.action !== "Ignore",
-      );
-      expect(items).toBeDefined();
-      if (!items) return;
-      expect(items).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            key: `global.css`,
-          }),
-          expect.objectContaining({
-            key: `favicon.ico`,
-          }),
-        ]),
-      );
-      expect(items.length).toBe(2);
-    }
-  });
+        // upload dummy file
+        await uploadFileToS3({
+            key: dummyKey,
+            localPath: join(testDir, "index.html"),
+            action: SyncAction.create,
+            contentType: "text/html",
+            priority: 0,
+        }, s3Client, { bucket: s3Config.bucket, prefix: "" }, logger);
+
+        const deployResult = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.css"],
+                    },
+                ],
+                s3: s3Config,
+            },
+            {
+                scan: true,
+                apply: true,
+                purge: true,
+            },
+            logger
+        );
+
+        expect(deployResult.result).toBe("success");
+        expect(deployResult.files.get(dummyKey)!.action).toBe(SyncAction.delete);
+    });
+
+    test("should handle source-level purge flags", async () => {
+        const dummyKey = `dummy-${(new Date()).getTime()}.html`;
+
+        // upload dummy file
+        await uploadFileToS3({
+            key: dummyKey,
+            localPath: join(testDir, "index.html"),
+            action: SyncAction.create,
+            contentType: "text/html",
+            priority: 0,
+        }, s3Client, { bucket: s3Config.bucket, prefix: "" }, logger);
+
+        const deployResult = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.css"],
+                        purge: true,
+                    },
+                ],
+                s3: s3Config,
+            },
+            {
+                scan: true,
+                apply: true,
+            },
+            logger
+        );
+
+        // should be ignore, only css files should be purged
+        expect(deployResult.files.get(dummyKey)!.action).toBe(SyncAction.ignored);
+
+
+        const deployResult2 = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.html"],
+                        purge: true,
+                    },
+                ],
+                s3: s3Config,
+            },
+            {
+                scan: true,
+                apply: true,
+            },
+            logger
+        );
+
+        // should be deleted, html files should be purged
+        expect(deployResult2.files.get(dummyKey)!.action).toBe(SyncAction.delete);
+    });
 });

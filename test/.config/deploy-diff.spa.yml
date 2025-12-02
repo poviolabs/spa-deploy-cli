@@ -1,0 +1,45 @@
+deploy:
+
+    context:
+      # AWS details
+      accountId: "000000000000"
+      region: us-east-1
+      endpoint: "http://localhost:9090"
+      accessKeyId: xxxx
+      secretAccessKey: xxxx
+      
+    # path to built files
+    prefix: app
+    
+    files:
+      - includeGlob: "**/*.html"
+        cacheControl: "no-cache, no-store, must-revalidate"
+        # Targeted invalidation
+        #invalidate: false
+        purge: true
+        priority: 2
+      - includeGlob: 
+         - "**/*.ico"
+         - "**/*.css"
+        cacheControl: "max-age=2628000, public"
+        priority: 1
+        
+    s3:
+        bucket: deploy-bucket
+        
+        # diff files, only upload files that have changed
+        strategy: diff
+
+        # prefix to upload to, default is root
+        #prefix:
+
+        # delete all ignored/unknown files
+        #purge: false
+        
+        # re-upload even if the file is the same (also updates cacheControl)
+        #force: false
+        
+        # set ACL, not needed if using bucket policy
+        #acl: "public-read"
+          
+    

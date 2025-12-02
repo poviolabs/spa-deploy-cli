@@ -5,7 +5,7 @@ services:
     ports:
       - "9090:9090"
     environment:
-      - initialBuckets=deploy-bucket
+      - initialBuckets=deploy-bucket,test-bucket
       - root=/data
     volumes:
       - ./.tmp/s3:/data

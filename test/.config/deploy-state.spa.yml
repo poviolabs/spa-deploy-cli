@@ -1,0 +1,28 @@
+deploy:
+
+    context:
+      # AWS details
+      accountId: "000000000000"
+      region: us-east-1
+      endpoint: "http://localhost:9090"
+      accessKeyId: xxxx
+      secretAccessKey: xxxx
+      
+    # path to built files
+    prefix: app
+    
+    files:
+      - includeGlob: "**/*.html"
+        cacheControl: "no-cache, no-store, must-revalidate"
+        purge: true
+        priority: 2
+      - includeGlob: 
+         - "**/*.ico"
+         - "**/*.css"
+        cacheControl: "max-age=2628000, public"
+        priority: 1
+        
+    s3:
+        bucket: deploy-bucket
+          
+    

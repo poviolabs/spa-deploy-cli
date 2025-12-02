@@ -1,74 +1,139 @@
-import yargs from "yargs";
-import { getVersion } from "../helpers/version.helper";
+import { existsSync, lstatSync } from "node:fs";
+import { resolve } from "node:path";
+import { resolveTemplate } from "@povio/resolve-config";
+import * as z from "zod";
 
-import { getBuilder, YargOption, YargsOptions } from "../helpers/yargs.helper";
+import { getArgs } from "../helpers/args";
+import { Logger } from "../helpers/logger";
+import { executeDeploy } from "../lib/deploy";
 
-import { logBanner, logInfo, logVariable } from "../helpers/cli.helper";
-import { detectGitChanges } from "../helpers/git.helper";
-import { deploy } from "./deploy";
+const commandSchema = z.object({
+  cwd: z.string().default(process.cwd()),
+  stage: z.string(),
+  target: z.string().optional(),
+  verbose: z.boolean().optional().default(false),
+  module: z.string().default("spa"),
+  purge: z.boolean().optional().default(false),
+  force: z.boolean().optional().default(false),
+  scan: z.boolean().optional().default(false),
+  apply: z.boolean().optional().default(false),
+  help: z.boolean().optional().default(false),
+});
 
-class DeployOptions implements YargsOptions {
-  @YargOption({ envAlias: "PWD", demandOption: true })
-  pwd!: string;
-
-  @YargOption({ envAlias: "STAGE", demandOption: true })
-  stage!: string;
-
-  @YargOption({ envAlias: "RELEASE", demandOption: true })
-  release!: string;
-
-  @YargOption({ envAlias: "VERBOSE", default: false })
-  verbose!: boolean;
-
-  @YargOption({ default: false })
-  target!: string;
-
-  @YargOption({ envAlias: "CI" })
-  ci!: boolean;
-
-  @YargOption({ envAlias: "IGNORE_GIT_CHANGES" })
-  ignoreGitChanges!: boolean;
-
-  @YargOption({ describe: "Remove all undefined files from S3" })
-  purge!: boolean;
-
-  @YargOption({ describe: "Replace all files even if not changed" })
-  force!: boolean;
-
-  @YargOption({ describe: "Dry run" })
-  dryRun!: boolean;
+export async function deployCommand(argv: string[]) {
+  const args = getArgs(argv, {
+    config: commandSchema,
+    envs: {
+      stage: "STAGE",
+    },
+  });
+  const logger = new Logger(args.verbose);
+  await deployCommandHandler(args, logger);
 }
 
-export const command: yargs.CommandModule = {
-  command: "deploy [target]",
-  describe: "Deploy SPA to target",
-  builder: getBuilder(DeployOptions),
-  handler: async (_argv) => {
-    const argv = (await _argv) as unknown as DeployOptions;
-    if (argv.verbose) {
-      logBanner(`SPA Deploy ${getVersion()}`);
-      logVariable("nodejs", process.version);
-      logVariable("pwd", argv.pwd);
-      logVariable("release", argv.release);
-      logVariable("stage", argv.stage);
-    }
-
-    if (argv.ci) {
-      if (argv.verbose) logInfo("Running Non-Interactively");
-    } else {
-      await detectGitChanges(argv.pwd, argv.ignoreGitChanges);
-    }
-
-    return deploy({
-      pwd: argv.pwd,
-      stage: argv.stage,
-      release: argv.release,
-      target: argv.target,
-      verbose: argv.verbose,
-      purge: argv.purge,
-      force: argv.force,
-      ci: argv.ci,
-      dryRun: argv.dryRun,
-    });
+export async function deployCommandHandler(
+  options: {
+    cwd: string;
+    stage: string;
+    target?: string | null;
+    verbose: boolean;
+    purge: boolean;
+    force: boolean;
+    apply: boolean;
+    module: string;
+    scan: boolean;
+    help: boolean;
   },
-};
+  logger: Logger = new Logger(false),
+) {
+  const { cwd, stage, target, purge, force, apply, scan, module, help } = options;
+
+  logger.info(`SPA DEPLOY CLI: ${process.env.SPA_DEPLOY_VERSION}`);
+  logger.info(`% CWD: ${cwd}`);
+  logger.info(`% Stage: ${stage}`);
+  logger.info(`% Module: ${module}`);
+  logger.info(`% Target: ${target ?? 'default'}`);
+  if (target) logger.info(`% Target: ${target}`);
+  if (purge) logger.info(`% Purge: remove unknown files from S3`);
+  if (force) logger.info(`% Force: replace files and update`);
+  logger.info("--------------------------------");
+
+
+  if (help) {
+    logger.info(`Usage: spa-deploy deploy --stage ${stage} --apply`);
+    logger.info(`  --purge: remove unknown files from S3`);
+    logger.info(`  --force: replace files and update`);
+    logger.info(`  --apply: apply changes, dry run is default`);
+    logger.info(`  --module: use another name for config, eq ".config/${stage}.${module}$.yml"`);
+    logger.info(`  --stage: set the environment ".config/${stage}.spa.yml"`);
+    logger.info(`  --verbose: output all logs`);
+    logger.info(`  --cwd: run in another directory`);
+    process.exit(0);
+  }
+
+  logger.info(`${apply ? "> Applying" : "> Dry run"} ${stage}...`);
+
+
+  try {
+    const configs = await (async () => {
+      let config = await resolveTemplate({ cwd, stage, module }) as any;
+      return Array.isArray(config.deploy) ? config.deploy : [config.deploy];
+    })();
+
+    for (const config of configs) {
+      if (target) {
+        if (config.name !== target) continue;
+        logger.info(`> Deploying target: ${config.name || "default"}`);
+      }
+
+      if (!config.prefix) {
+        logger.error(`Prefix is required for deployment`);
+        logger.debug(`Config: ${JSON.stringify(config)}`);
+        process.exit(1);
+      }
+
+      const prefix = config.prefix || "dist";
+      const sourcePath = resolve(cwd, prefix);
+
+      if (!existsSync(sourcePath) || !lstatSync(sourcePath).isDirectory()) {
+        logger.error(`prefix does not exist or is not a directory: ${sourcePath}`);
+        process.exit(1);
+      }
+
+      const result = await executeDeploy(
+        {
+          ...config,
+          prefix: sourcePath,
+        },
+        {
+          apply: apply,
+          force: !!force,
+          purge: !!purge,
+          scan: !!scan,
+        },
+        logger
+      );
+
+      switch (result.result) {
+        case "no-changes":
+          logger.info("> No changes to deploy");
+          break;
+        case "success":
+          logger.info("> Deployment completed successfully");
+          if (result.invalidationIds.length > 0) {
+            logger.info(
+              `CloudFront invalidations: ${result.invalidationIds.join(", ")}`,
+            );
+          }
+          break;
+        default:
+          logger.error(`Deployment failed: ${result.result}`);
+          process.exit(1);
+      }
+    }
+
+  } catch (error: any) {
+    logger.error("Deployment failed", error);
+    process.exit(1);
+  }
+}

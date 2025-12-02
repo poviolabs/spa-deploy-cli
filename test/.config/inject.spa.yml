@@ -1,0 +1,20 @@
+configs:
+  - name: html
+    values:
+      - name: "APP_RELEASE"
+        valueFrom: "env:APP_RELEASE"
+      - name: "APP_STAGE"
+        valueFrom: "func:stage"
+      - name: "APP_VERSION"
+        valueFrom: "env:APP_VERSION"
+      - name: "STATIC_URL"
+        value: "https://static.example.com"
+      - name: "NEXT_PUBLIC_SENTRY_CDN"
+        value: "https://public@sentry.example.com/1"
+
+inject:
+  - name: "html"
+    sourceGlob: "**/*.html"
+    sourcePrefix: "app"
+    destinationPrefix: "../.tmp/inject"
+    config: html

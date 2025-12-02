@@ -1,29 +1,46 @@
 #!/usr/bin/env node
 
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
+import { deployCommand } from "./commands/deploy.command";
+import { injectCommand } from "./commands/inject.command";
 
-import { command as bootstrapCommand } from "./commands/bootstrap.command";
-import { command as deployCommand } from "./commands/deploy.command";
-import { command as invalidateCommand } from "./commands/invalidate.command";
-import { logError, logInfo } from "./helpers/cli.helper";
+const [command, ...args] = process.argv.slice(2);
 
-import { getVersion } from "./helpers/version.helper";
+if (!command) {
+  console.log(`
+NAME:
+  spa-deploy - Deploy a Single Page Application
 
-yargs(hideBin(process.argv))
-  .version(getVersion() || "unknown")
-  .scriptName("spa-deploy")
-  .command(bootstrapCommand)
-  .command(deployCommand)
-  .command(invalidateCommand)
-  .help()
-  .demandCommand(1)
-  .strictCommands(true)
-  .showHelpOnFail(true)
-  .fail((msg, err) => {
-    if (msg) logError(msg);
-    if (err) logError(err);
-    logInfo("Use '--help' for more info");
+USAGE:
+  Deploy a Single Page Application
+
+  Documentation is available at https://github.com/povio/spa-deploy-cli
+  
+VERSION:
+  ${process.env.SPA_DEPLOY_VERSION} 
+
+AUTHOR:
+  {Marko Zabreznik marko.zabreznik@povio.com}
+
+COMMANDS
+  inject - Inject environment variables into SPA
+  deploy - Deploy a Single Page Application
+  
+COPYRIGHT:
+  (c) 2025 Povio inc., All rights reserved.
+`);
+  process.exit(1);
+}
+
+switch (command) {
+  case "inject":
+    injectCommand(args);
+    break;
+    
+  case "deploy":
+    deployCommand(args);
+    break;
+
+  default:
+    console.error(`Unknown command: ${command}`);
     process.exit(1);
-  })
-  .parse();
+}

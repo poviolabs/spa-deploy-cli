@@ -18,8 +18,8 @@ node_modules
 povio-spa-deploy-cli-*
 
 # config
-config.local.yaml
+.config/*.override.yml
+.config/*.resolved.yml
 
+# temp
 .tmp
-.env
-.env.local

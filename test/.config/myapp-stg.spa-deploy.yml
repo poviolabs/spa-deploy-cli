@@ -1,9 +1,0 @@
-region: us-east-1
-accountId: "00000000000"
-
-configs:
-  source: ./app/index.html
-  destination: ./myapp-stg.final.html
-  values:
-    - name: "@"
-      configFrom: template
