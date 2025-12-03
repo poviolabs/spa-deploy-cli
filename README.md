@@ -85,6 +85,9 @@ deploy:
       # Priority, lower number is uploaded first
       #priority: 2
 
+      # Ignore this pattern entirely
+      #ignore: false
+
     - includeGlob: 
         - favicon.ico
         - assets/**/*

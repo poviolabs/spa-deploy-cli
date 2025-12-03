@@ -23,6 +23,13 @@ describe("s3.ts", () => {
     let s3Client: ReturnType<typeof getS3ClientInstance>;
     const logger = new Logger(false);
 
+    const s3Prefix = `s3-test-${(new Date()).getTime()}/`;
+    const s3Config = {
+        bucket: TEST_BUCKET,
+        context: getTestAwsContext(),
+        prefix: s3Prefix
+    };
+
     beforeAll(async () => {
         s3Client = getS3ClientInstance(getTestAwsContext());
     });
@@ -34,7 +41,6 @@ describe("s3.ts", () => {
     describe("uploadToS3", () => {
         test("should upload file to S3", async () => {
             const testFile = join(testDir, "index.html");
-            const context = getTestAwsContext();
 
             const files = [
                 {
@@ -48,7 +54,7 @@ describe("s3.ts", () => {
 
             await uploadToS3(
                 files,
-                { bucket: TEST_BUCKET, prefix: "", context, concurrency: 5 },
+                s3Config,
                 logger
             );
 
@@ -56,7 +62,7 @@ describe("s3.ts", () => {
             const response = await s3Client.send(
                 new GetObjectCommand({
                     Bucket: TEST_BUCKET,
-                    Key: "index.html",
+                    Key: `${s3Prefix}index.html`,
                 })
             );
 
@@ -67,7 +73,6 @@ describe("s3.ts", () => {
 
         test("should upload file with prefix", async () => {
             const testFile = join(testDir, "global.css");
-            const context = getTestAwsContext();
 
             const files = [
                 {
@@ -81,7 +86,7 @@ describe("s3.ts", () => {
 
             await uploadToS3(
                 files,
-                { bucket: TEST_BUCKET, prefix: "app/", context, concurrency: 5 },
+                { ...s3Config, concurrency: 5 },
                 logger
             );
 
@@ -89,7 +94,7 @@ describe("s3.ts", () => {
             const response = await s3Client.send(
                 new GetObjectCommand({
                     Bucket: TEST_BUCKET,
-                    Key: "app/global.css",
+                    Key: `${s3Prefix}global.css`,
                 })
             );
 
@@ -100,7 +105,6 @@ describe("s3.ts", () => {
 
         test("should upload file with metadata", async () => {
             const testFile = join(testDir, "index.html");
-            const context = getTestAwsContext();
 
             const files = [
                 {
@@ -117,7 +121,7 @@ describe("s3.ts", () => {
 
             await uploadToS3(
                 files,
-                { bucket: TEST_BUCKET, prefix: "", context, concurrency: 5 },
+                s3Config,
                 logger
             );
 
@@ -125,7 +129,7 @@ describe("s3.ts", () => {
             const { CacheControl, ContentDisposition } = await s3Client.send(
                 new GetObjectCommand({
                     Bucket: TEST_BUCKET,
-                    Key: "index.html",
+                    Key: `${s3Prefix}index.html`,
                 })
             );
 
@@ -135,7 +139,6 @@ describe("s3.ts", () => {
 
         test("should skip files that are not create or update", async () => {
             const testFile = join(testDir, "index.html");
-            const context = getTestAwsContext();
 
             const files = [
                 {
@@ -149,7 +152,7 @@ describe("s3.ts", () => {
 
             await uploadToS3(
                 files,
-                { bucket: TEST_BUCKET, prefix: "", context, concurrency: 5 },
+                s3Config,
                 logger
             );
 
@@ -158,7 +161,7 @@ describe("s3.ts", () => {
                 await s3Client.send(
                     new GetObjectCommand({
                         Bucket: TEST_BUCKET,
-                        Key: "skip.html",
+                        Key: `${s3Prefix}skip.html`,
                     })
                 );
                 expect.fail("File should not exist");
@@ -168,11 +171,11 @@ describe("s3.ts", () => {
         });
 
         test("should handle empty files array", async () => {
-            const context = getTestAwsContext();
+
 
             await uploadToS3(
                 [],
-                { bucket: TEST_BUCKET, prefix: "", context, concurrency: 5 },
+                s3Config,
                 logger
             );
 
@@ -185,7 +188,6 @@ describe("s3.ts", () => {
         test("should scan S3 bucket and match with local files", async () => {
             // Upload a file first
             const testFile = join(testDir, "index.html");
-            const context = getTestAwsContext();
 
             await uploadToS3(
                 [
@@ -197,7 +199,7 @@ describe("s3.ts", () => {
                         priority: 0,
                     },
                 ],
-                { bucket: TEST_BUCKET, prefix: "", context, concurrency: 5 },
+                s3Config,
                 logger
             );
 
@@ -217,7 +219,7 @@ describe("s3.ts", () => {
             const scannedFiles = await scanS3Files(
                 localFiles,
                 [],
-                { bucket: TEST_BUCKET, prefix: "", purge: false, context },
+                { ...s3Config, purge: false },
                 logger
             );
 
@@ -229,7 +231,6 @@ describe("s3.ts", () => {
 
         test("should mark remote-only files for deletion when purge is true", async () => {
             // Upload a file
-            const context = getTestAwsContext();
             const testFile = join(testDir, "global.css");
             await uploadToS3(
                 [
@@ -241,7 +242,7 @@ describe("s3.ts", () => {
                         priority: 0,
                     },
                 ],
-                { bucket: TEST_BUCKET, prefix: "", context, concurrency: 5 },
+                s3Config,
                 logger
             );
 
@@ -250,7 +251,7 @@ describe("s3.ts", () => {
             const scannedFiles = await scanS3Files(
                 localFiles,
                 [],
-                { bucket: TEST_BUCKET, prefix: "", purge: true, context },
+                { ...s3Config, purge: true },
                 logger
             );
 
@@ -261,7 +262,6 @@ describe("s3.ts", () => {
 
         test("should handle prefix correctly", async () => {
             const testFile = join(testDir, "index.html");
-            const context = getTestAwsContext();
 
             await uploadToS3(
                 [
@@ -273,7 +273,7 @@ describe("s3.ts", () => {
                         priority: 0,
                     },
                 ],
-                { bucket: TEST_BUCKET, prefix: "app/", context, concurrency: 5 },
+                s3Config,
                 logger
             );
 
@@ -292,7 +292,7 @@ describe("s3.ts", () => {
             const scannedFiles = await scanS3Files(
                 localFiles,
                 [],
-                { bucket: TEST_BUCKET, prefix: "app/", purge: false, context },
+                { ...s3Config, purge: false },
                 logger
             );
 
@@ -304,7 +304,6 @@ describe("s3.ts", () => {
 
     describe("purgeFromS3", () => {
         test("should delete files marked for deletion", async () => {
-            const context = getTestAwsContext();
             const testFile = join(testDir, "index.html");
 
             // Upload file first
@@ -318,7 +317,7 @@ describe("s3.ts", () => {
                         priority: 0,
                     },
                 ],
-                { bucket: TEST_BUCKET, prefix: "", context, concurrency: 5 },
+                s3Config,
                 logger
             );
 
@@ -326,7 +325,7 @@ describe("s3.ts", () => {
             const before = await s3Client.send(
                 new GetObjectCommand({
                     Bucket: TEST_BUCKET,
-                    Key: "to-delete.html",
+                    Key: `${s3Prefix}to-delete.html`,
                 })
             );
             expect(before).toBeDefined();
@@ -340,7 +339,7 @@ describe("s3.ts", () => {
                         priority: 0,
                     },
                 ],
-                { bucket: TEST_BUCKET, prefix: "", context },
+                s3Config,
                 logger
             );
 
@@ -386,7 +385,7 @@ describe("s3.ts", () => {
                         priority: 0,
                     },
                 ],
-                { bucket: TEST_BUCKET, prefix: "", context },
+                { bucket: TEST_BUCKET, prefix: "", context, concurrency: 5 },
                 logger
             );
 
@@ -428,7 +427,7 @@ describe("s3.ts", () => {
                         priority: 0,
                     },
                 ],
-                { bucket: TEST_BUCKET, prefix: "app/", context },
+                { bucket: TEST_BUCKET, prefix: "app/", context, concurrency: 5 },
                 logger
             );
 

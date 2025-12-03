@@ -17,6 +17,7 @@ const commandSchema = z.object({
   force: z.boolean().optional().default(false),
   scan: z.boolean().optional().default(false),
   apply: z.boolean().optional().default(false),
+  concurrency: z.number().optional().default(5),
   help: z.boolean().optional().default(false),
 });
 
@@ -42,11 +43,12 @@ export async function deployCommandHandler(
     apply: boolean;
     module: string;
     scan: boolean;
+    concurrency: number;
     help: boolean;
   },
   logger: Logger = new Logger(false),
 ) {
-  const { cwd, stage, target, purge, force, apply, scan, module, help } = options;
+  const { cwd, stage, target, purge, force, apply, scan, module, help, verbose, concurrency } = options;
 
   logger.info(`SPA DEPLOY CLI: ${process.env.SPA_DEPLOY_VERSION}`);
   logger.info(`% CWD: ${cwd}`);
@@ -110,21 +112,14 @@ export async function deployCommandHandler(
           force: !!force,
           purge: !!purge,
           scan: !!scan,
+          concurrency: concurrency,
         },
         logger
       );
 
       switch (result.result) {
         case "no-changes":
-          logger.info("> No changes to deploy");
-          break;
         case "success":
-          logger.info("> Deployment completed successfully");
-          if (result.invalidationIds.length > 0) {
-            logger.info(
-              `CloudFront invalidations: ${result.invalidationIds.join(", ")}`,
-            );
-          }
           break;
         default:
           logger.error(`Deployment failed: ${result.result}`);

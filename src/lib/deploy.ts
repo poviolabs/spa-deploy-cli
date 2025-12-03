@@ -1,8 +1,11 @@
+import picomatch from "picomatch";
+
 import { Logger } from "../helpers/logger";
 import { invalidateCloudFront } from "./cloudfront";
 import { type DeployConfig, type DeployFile, SyncAction, deployConfig } from "./deploy.types";
 import { scanLocalFiles } from "./local";
-import { purgeFromS3, scanS3Files, uploadToS3 } from "./s3";
+import { getS3ClientInstance, purgeFromS3, scanS3Files, uploadToS3 } from "./s3";
+import { getState, saveState } from "./state";
 
 /**
  * Execute the deployment pipeline with priority-based execution
@@ -15,6 +18,7 @@ export async function executeDeploy(
         force?: boolean;
         scan?: boolean;
         purge?: boolean;
+        concurrency?: number;
     },
     logger: Logger = new Logger(false),
 ): Promise<{
@@ -29,27 +33,32 @@ export async function executeDeploy(
     const bucket = deploy.s3.bucket;
     const purge = options.purge || deploy.s3.purge || false;
 
-    const stateFile = !deploy.s3.stateFile ? false : typeof deploy.s3.stateFile === 'string' ? deploy.s3.stateFile : `.spa-deploy/files.json`;
-
-    if (stateFile) {
-        throw new Error(`State file ${stateFile} is not supported yet`);
-    }
-
     let fileConfigs = deploy.files.map(file => ({
         ...file,
         skipUnchanged: force ? false : file.skipUnchanged ?? deploy.s3.skipUnchanged,
     }));
 
+    const stateFile = !deploy.s3.stateFile ? false : typeof deploy.s3.stateFile === 'string' ? deploy.s3.stateFile : `.spa-deploy/files.json`;
+
     logger.info("> Starting deployment ...");
 
-    const fileMap = new Map<string, DeployFile>();
+    let fileMap = new Map<string, DeployFile>();
 
 
-    logger.info("\n> Step 1: Scanning local files...");
+    if (stateFile) {
+        logger.info(`\n> Fetching state file from ${stateFile}`);
+        fileMap = await getState(stateFile, getS3ClientInstance({
+            ...deploy.context,
+            ...deploy.s3.context,
+        }), { bucket, prefix: deploy.s3.prefix }, logger);
+        fileConfigs = [{ includeGlob: [picomatch(stateFile)], ignore: true, skipUnchanged: false }, ...fileConfigs];
+    }
+
+    logger.info("\n> Scanning local files...");
     await scanLocalFiles(fileMap, fileConfigs, { prefix: deploy.prefix }, logger);
 
     if (scan) {
-        logger.info("\n> Step 2: Scanning S3 files...");
+        logger.info("\n> Scanning S3 files...");
         await scanS3Files(
             fileMap,
             fileConfigs,
@@ -65,15 +74,21 @@ export async function executeDeploy(
             logger,
         );
     } else {
-        logger.info("\n> Step 2: Skipping S3 Scan");
+        logger.info("\n> Skipping S3 Scan");
 
     }
 
     logger.info("\n--------------------------------");
     logger.info("Action\t\tKey");
+
     for (const { key, action, invalidate } of fileMap.values()) {
-        logger.info(`${action}\t${invalidate ? 'I' : ''}\t${key}`);
+        if (action === SyncAction.ignored) {
+            logger.debug(`${action}\t${invalidate ? 'I' : ''}\t${key}`);
+        } else {
+            logger.info(`${action}\t${invalidate ? 'I' : ''}\t${key}`);
+        }
     }
+
     logger.info("--------------------------------");
 
     if (!apply) {
@@ -102,7 +117,7 @@ export async function executeDeploy(
     }
 
     if (toUpload.size > 0) {
-        logger.info("\n> Step 3: Uploading files...");
+        logger.info("\n> Uploading files...");
         for (const priority of Array.from(toUpload.keys()).sort((a, b) => a - b)) {
             // logger.debug(`> Uploading files with priority ${priority}...`);
             await uploadToS3(toUpload.get(priority)!, {
@@ -112,18 +127,18 @@ export async function executeDeploy(
                     ...deploy.s3.context,
                     ...deploy.context,
                 },
-                concurrency: 5,
+                concurrency: options.concurrency || 5,
             }, logger);
             toUpload.delete(priority);
         }
     } else {
-        logger.info("\n> Step 3: Skipping upload - no files to upload");
+        logger.info("\n> Skipping upload - no files to upload");
     }
 
     let invalidationIds: string[] = [];
     if (deploy.cloudfront) {
         try {
-            logger.info("\n> Step 4: Invalidating CloudFront...");
+            logger.info("\n> Invalidating CloudFront...");
             const filesNeedingInvalidation = Array.from(fileMap.values()).filter(
                 (file) => file.invalidate,
             );
@@ -161,11 +176,11 @@ export async function executeDeploy(
             logger.error("Failed to invalidate CloudFront", error as Error);
         }
     } else {
-        logger.info("\n> Step 4: Skipping invalidation - no files to invalidate");
+        logger.info("\n> Skipping invalidation - no files to invalidate");
     }
 
     if (toDelete.size > 0) {
-        logger.info("\n> Step 5: Purging files...");
+        logger.info("\n> Purging files...");
         for (const priority of Array.from(toDelete.keys()).sort((a, b) => a - b)) {
             //logger.debug(`> Purging files with priority ${priority}...`);
             await purgeFromS3(toDelete.get(priority)!, {
@@ -175,12 +190,21 @@ export async function executeDeploy(
                     ...deploy.context,
                     ...deploy.s3.context,
                 },
+                concurrency: options.concurrency || 5,
             }, logger);
             toDelete.delete(priority);
         }
     }
 
-    logger.info("> Deployment pipeline completed successfully");
+    if (stateFile) {
+        logger.info("\n> Saving state file...");
+        await saveState(fileMap, getS3ClientInstance({
+            ...deploy.context,
+            ...deploy.s3.context,
+        }), { bucket, stateFile, prefix: deploy.s3.prefix }, logger);
+    }
+
+    logger.info("\n> Deployment pipeline completed successfully");
 
     return {
         files: fileMap,

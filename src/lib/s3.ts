@@ -23,39 +23,61 @@ export async function purgeFromS3(
     options: {
         bucket: string;
         prefix?: string;
+        concurrency?: number;
         context: ContextConfig;
     },
     logger: Logger = new Logger(false),
 ): Promise<void> {
     const { bucket, prefix, context } = options;
+    const concurrency = options.concurrency || 5;
 
     if (!context?.region) {
         throw new Error("AWS Region is required for S3 purge");
     }
     const client = getS3ClientInstance(context);
 
+    const filesToDelete = files.filter(file => [SyncAction.delete].includes(file.action));
 
-    for (const file of files) {
-        if (![SyncAction.delete].includes(file.action)) {
-            continue;
-        }
+    if (filesToDelete.length === 0) {
+        logger.info("> No files to purge");
+        return;
+    }
 
-        const s3Key = prefix ? `${prefix}${file.key}` : file.key;
-        try {
-            await client.send(
-                new DeleteObjectCommand({
-                    Bucket: bucket,
-                    Key: s3Key,
-                }),
-            );
-
-            logger.debug(`>> ${s3Key}`);
-        } catch (error) {
-            logger.error(`Failed to delete ${s3Key}: ${error}`);
-        }
+    for (let i = 0; i < filesToDelete.length; i += concurrency) {
+        const batch = filesToDelete.slice(i, i + concurrency);
+        await Promise.all(
+            batch.map(async (file) => {
+                await deleteFileFromS3(file, client, { bucket, prefix }, logger);
+            }),
+        );
     }
 
     logger.info("> Completed purging files");
+}
+
+export async function deleteFileFromS3(
+    file: DeployFile,
+    client: S3Client,
+    options: {
+        bucket: string;
+        prefix?: string;
+    },
+    logger: Logger = new Logger(false),
+): Promise<void> {
+    const { bucket, prefix } = options;
+    const s3Key = prefix ? `${prefix}${file.key}` : file.key;
+    try {
+        await client.send(
+            new DeleteObjectCommand({
+                Bucket: bucket,
+                Key: s3Key,
+            }),
+        );
+
+        logger.debug(`>> ${s3Key}`);
+    } catch (error) {
+        logger.error(`Failed to delete ${s3Key}: ${error}`);
+    }
 }
 
 export async function scanS3Files(
@@ -100,6 +122,11 @@ export async function scanS3Files(
                     file.remoteHash = remoteHash;
                     file.remoteSize = remoteSize;
 
+                    if (file.action === SyncAction.ignored) {
+                        // should not happen but just in case
+                        continue;
+                    }
+
                     if (file.action == SyncAction.create) {
                         // file is to be created but update was not forced, check if its needed
                         if (file.localHash !== remoteHash || file.localSize !== remoteSize) {
@@ -110,12 +137,14 @@ export async function scanS3Files(
                     }
                 } else {
                     // no local file exists
-                    // delete it if purge was forced
-                    let action = purge ? SyncAction.delete : SyncAction.ignored;
-                    if (!purge) {
-                        // or if the source has purge enabled
-                        const matchingFile = fileConfigs.find(file => file.includeGlob.some(glob => glob(key)));
-                        if (matchingFile && matchingFile.purge) {
+                    let action = purge ? SyncAction.delete : SyncAction.unknown;
+                    const matchingFile = fileConfigs.find(file => file.includeGlob.some(glob => glob(key)));
+                    if (matchingFile) {
+                        if (matchingFile.ignore) {
+                            // dont even record ignored files
+                            continue;
+                        }
+                        if (purge || matchingFile.purge) {
                             action = SyncAction.delete;
                         }
                     }
@@ -142,7 +171,7 @@ export async function uploadToS3(
     options: {
         bucket: string;
         prefix?: string;
-        concurrency: number;
+        concurrency?: number;
         context: ContextConfig,
     },
     logger: Logger = new Logger(false),
@@ -182,7 +211,7 @@ export async function uploadFileToS3(
     client: S3Client,
     options: {
         bucket: string;
-        prefix: string;
+        prefix?: string;
     },
     logger: Logger = new Logger(false),
 ): Promise<void> {

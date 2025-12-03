@@ -8,7 +8,10 @@ export enum SyncAction {
     delete = "Delete",
     update = "Update",
     create = "Create",
+    unknown = "Unknown",
 }
+
+
 
 export interface DeployFile {
     key: string;
@@ -21,9 +24,10 @@ export interface DeployFile {
     contentType?: string;
     contentDisposition?: string;
     acl?: string;
+    updatedAt?: string;
     invalidate?: boolean;
     action: SyncAction;
-    priority: number;
+    priority?: number;
 }
 
 export const contextConfig = z.object({
@@ -40,6 +44,7 @@ export const fileConfig = z.object({
     cacheControl: z.string().optional(),
     skipUnchanged: z.boolean().optional(),
     purge: z.boolean().optional(),
+    ignore: z.boolean().optional(),
     invalidate: z.boolean().optional(),
     contentType: z.string().optional(),
     contentDisposition: z.string().optional(),
@@ -81,3 +86,16 @@ export const deployConfig = z.object({
 export type DeployConfig = z.input<typeof deployConfig>;
 
 export const CloudfrontConfigSchema = cloudfrontConfig;
+
+export const stateFileEntry = z.object({
+    key: z.string(),
+    remoteHash: z.string().optional(),
+    remoteSize: z.number().optional(),
+    cacheControl: z.string().optional(),
+    contentType: z.string().optional(),
+    contentDisposition: z.string().optional(),
+    acl: z.string().optional(),
+    updatedAt: z.string().optional(),
+});
+
+export type StateFileEntry = z.output<typeof stateFileEntry>;

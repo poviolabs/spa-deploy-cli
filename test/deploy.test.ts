@@ -6,22 +6,25 @@ import { Logger } from "../src/helpers/logger";
 import { executeDeploy } from "../src/lib/deploy";
 import { SyncAction } from "../src/lib/deploy.types";
 import { getS3ClientInstance, uploadFileToS3 } from "../src/lib/s3";
+import { getState } from "../src/lib/state";
 import {
     TEST_BUCKET,
     cleanupS3Bucket,
     getTestAwsContext,
 } from "./s3.helpers";
 
-const __dirname = new URL(".", import.meta.url).pathname;
 const testDir = join(__dirname, "app");
 
 describe("deploy.ts - executeDeploy", () => {
-    const logger = new Logger(false);
+    const logger = new Logger(true);
     let s3Client: S3Client;
 
+
+    const s3Prefix = `deploy-test-${(new Date()).getTime()}/`;
     const s3Config = {
         bucket: TEST_BUCKET,
         context: getTestAwsContext(),
+        prefix: s3Prefix
     };
 
     beforeAll(async () => {
@@ -177,7 +180,7 @@ describe("deploy.ts - executeDeploy", () => {
             action: SyncAction.create,
             contentType: "text/html",
             priority: 0,
-        }, s3Client, { bucket: s3Config.bucket, prefix: "" }, logger);
+        }, s3Client, { bucket: s3Config.bucket, prefix: s3Prefix }, logger);
 
         const deployResult = await executeDeploy(
             {
@@ -211,7 +214,7 @@ describe("deploy.ts - executeDeploy", () => {
             action: SyncAction.create,
             contentType: "text/html",
             priority: 0,
-        }, s3Client, { bucket: s3Config.bucket, prefix: "" }, logger);
+        }, s3Client, { bucket: s3Config.bucket, prefix: s3Prefix }, logger);
 
         const deployResult = await executeDeploy(
             {
@@ -231,8 +234,8 @@ describe("deploy.ts - executeDeploy", () => {
             logger
         );
 
-        // should be ignore, only css files should be purged
-        expect(deployResult.files.get(dummyKey)!.action).toBe(SyncAction.ignored);
+        // should be unknown, only css files should be purged
+        expect(deployResult.files.get(dummyKey)!.action).toBe(SyncAction.unknown);
 
 
         const deployResult2 = await executeDeploy(
@@ -255,5 +258,86 @@ describe("deploy.ts - executeDeploy", () => {
 
         // should be deleted, html files should be purged
         expect(deployResult2.files.get(dummyKey)!.action).toBe(SyncAction.delete);
+    });
+
+    test("should handle state file", async () => {
+
+        let stateFile = "files.json";
+        const deploy = async () => executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.html"],
+                        cacheControl: "no-cache",
+                        skipUnchanged: true,
+                    },
+                ],
+                s3: {
+                    ...s3Config,
+                    stateFile,
+                },
+            },
+            {
+                apply: true,
+            },
+            logger
+        );
+
+        const deployResult = await deploy();
+
+        // file should be created
+        expect(deployResult.result).toBe("success");
+        const deployedIndexHtml = deployResult.files.get("index.html")!;
+        expect(deployedIndexHtml).toMatchObject({
+            action: SyncAction.create,
+            key: "index.html",
+            cacheControl: "no-cache",
+            contentType: "text/html",
+            contentDisposition: 'inline',
+            acl: undefined,
+            updatedAt: expect.any(String),
+        });
+
+        const state1 = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix: s3Prefix }, logger);
+
+        expect(state1.size).toBe(1);
+        expect(state1.get("index.html")).toMatchObject({
+            key: "index.html",
+            cacheControl: deployedIndexHtml.cacheControl,
+            contentType: deployedIndexHtml.contentType,
+            contentDisposition: deployedIndexHtml.contentDisposition,
+            acl: deployedIndexHtml.acl,
+            updatedAt: deployedIndexHtml.updatedAt,
+        });
+
+        // file should be unchanged but the updatedAt should be new
+        const deployResult2 = await deploy();
+
+        expect(deployResult2.result).toBe("success");
+        expect(deployResult2.files.get("index.html")).toMatchObject({
+            action: SyncAction.unchanged,
+            key: "index.html",
+            cacheControl: "no-cache",
+            contentType: "text/html",
+            contentDisposition: 'inline',
+            acl: undefined,
+            updatedAt: expect.any(String),
+        });
+
+        const deployedIndexHtml2 = deployResult2.files.get("index.html")!;
+
+        const state2 = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix: s3Prefix }, logger);
+
+        expect(state2.size).toBe(1);
+        expect(state2.get("index.html")).toMatchObject({
+            key: "index.html",
+            cacheControl: deployedIndexHtml.cacheControl,
+            contentType: deployedIndexHtml.contentType,
+            contentDisposition: deployedIndexHtml.contentDisposition,
+            acl: deployedIndexHtml.acl,
+            // updatedAt should be new
+            updatedAt: deployedIndexHtml2.updatedAt,
+        });
     });
 });

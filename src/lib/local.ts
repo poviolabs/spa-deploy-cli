@@ -26,6 +26,7 @@ export async function scanLocalFiles(
     logger: Logger = new Logger(false),
 ): Promise<Map<string, DeployFile>> {
     const absPrefix = resolve(options.prefix);
+    const updatedAt = new Date().toISOString();
 
     // list all files in the prefix
     for await (const relativePath of glob("**/*", { cwd: absPrefix })) {
@@ -36,53 +37,69 @@ export async function scanLocalFiles(
             continue;
         }
 
-        const absPath = join(absPrefix, relativePath);
-        const stats = await stat(absPath);
+        if (matchingSource.ignore) {
+            continue;
+        }
+
+        const localPath = join(absPrefix, relativePath);
+        const stats = await stat(localPath);
         if (!stats.isFile()) {
             continue;
         }
 
         const forceUpload = matchingSource?.skipUnchanged !== true
 
-        let action = forceUpload ? SyncAction.update : SyncAction.create;
-        const priority = matchingSource.priority ?? 0;
-        const contentType = matchingSource.contentType ||
-            lookup(absPath) || "application/octet-stream";
-        const localHash = await fileMd5(absPath);
+        const localHash = await fileMd5(localPath);
         const localSize = stats.size;
+        const priority = matchingSource.priority ?? 0;
+        const contentType = matchingSource.contentType || lookup(localPath) || "application/octet-stream";
         const contentDisposition = matchingSource.contentDisposition || "inline";
         const cacheControl = matchingSource.cacheControl;
         const acl = matchingSource.acl;
+        const invalidate = matchingSource.invalidate;
 
 
-        const deployFile: DeployFile = fileMap.get(relativePath) || {
-            key: relativePath,
-            action: action,
-            priority: priority,
-        };
+        let deployFile: DeployFile;
+        if (fileMap.has(relativePath)) {
+            deployFile = fileMap.get(relativePath)!;
+            deployFile.action = SyncAction.unchanged;
 
-        if (
-            deployFile.remoteSize && deployFile.remoteSize !== stats.size
-            || deployFile.remoteHash && deployFile.remoteHash !== localHash
-            || deployFile.remoteSize && deployFile.remoteSize !== localSize
-            || acl && deployFile.acl && deployFile.acl !== acl
-            || deployFile.contentType && deployFile.contentType !== contentType
-            || deployFile.contentDisposition && deployFile.contentDisposition !== contentDisposition
-            || deployFile.cacheControl && deployFile.cacheControl !== cacheControl
-        ) {
-            action = SyncAction.update;
+            if (localHash !== deployFile.remoteHash ||
+                localSize !== deployFile.remoteSize ||
+                contentType !== deployFile.contentType ||
+                contentDisposition !== deployFile.contentDisposition ||
+                cacheControl !== deployFile.cacheControl ||
+                acl !== deployFile.acl) {
+                deployFile.action = SyncAction.update;
+                deployFile.localHash = localHash;
+                deployFile.localSize = localSize;
+                deployFile.contentType = contentType;
+                deployFile.contentDisposition = contentDisposition;
+                deployFile.cacheControl = cacheControl;
+                deployFile.acl = acl;
+            }
+
+            deployFile.localPath = localPath;
+            deployFile.invalidate = invalidate;
+            deployFile.priority = priority;
+            deployFile.updatedAt = updatedAt;
+
+        } else {
+            deployFile = {
+                key: relativePath,
+                localPath,
+                localSize,
+                localHash,
+                action: forceUpload ? SyncAction.update : SyncAction.create,
+                priority,
+                contentType,
+                contentDisposition,
+                cacheControl,
+                acl,
+                invalidate,
+                updatedAt,
+            };
         }
-
-        deployFile.localPath = absPath;
-        deployFile.localSize = localSize;
-        deployFile.localHash = localHash;
-        deployFile.contentType = contentType;
-        deployFile.contentDisposition = contentDisposition;
-        deployFile.cacheControl = cacheControl;
-        deployFile.acl = acl;
-        deployFile.invalidate = matchingSource.invalidate;
-        deployFile.priority = priority;
-        deployFile.action = action;
 
         logger.debug(
             `>> ${relativePath} (priority: ${priority}, hash: ${deployFile.localHash}, size: ${deployFile.localSize})`,
