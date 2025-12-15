@@ -475,9 +475,7 @@ describe("deploy.ts - executeDeploy", () => {
             }, s3Client, s3Options, logger),
         ]);
 
-        // Deploy with state enabled but no state file exists (empty state)
-        // Scan should automatically happen
-        const deployResult = await executeDeploy(
+        const deployConfig: Parameters<typeof executeDeploy> = [
             {
                 prefix: testDir,
                 files: [
@@ -501,6 +499,12 @@ describe("deploy.ts - executeDeploy", () => {
                 apply: true,
             },
             logger
+        ];
+
+        // Deploy with state enabled but no state file exists (empty state)
+        // Scan should automatically happen
+        const deployResult = await executeDeploy(
+            ...deployConfig,
         );
 
 
@@ -510,14 +514,13 @@ describe("deploy.ts - executeDeploy", () => {
         const existingFiles = [existingFile1, existingFile2].map(key => deployResult.files.get(key));
         existingFiles.forEach(file => {
             expect(file).toBeDefined();
-            expect(file?.updatedAt).toBeDefined();
             expect(file?.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
         });
 
         // Verify local files also have updatedAt
         const localFiles = ["index.html", "global.css"].map(key => deployResult.files.get(key));
         localFiles.forEach(file => {
-            expect(file?.updatedAt).toBeDefined();
+            expect(file?.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
         });
 
         // get state file
@@ -529,6 +532,25 @@ describe("deploy.ts - executeDeploy", () => {
             updatedAt: expect.any(String),
         }));
         expect(state.get(existingFile2)).toEqual(expect.objectContaining({
+            action: SyncAction.unknown,
+            updatedAt: expect.any(String),
+        }));
+
+
+        // Make sure the state still contains all files
+        await executeDeploy(
+            ...deployConfig,
+        );
+
+        // get state file
+        const state2 = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix }, logger);
+
+        expect(state2.size).toBe(4);
+        expect(state2.get(existingFile1)).toEqual(expect.objectContaining({
+            action: SyncAction.unknown,
+            updatedAt: expect.any(String),
+        }));
+        expect(state2.get(existingFile2)).toEqual(expect.objectContaining({
             action: SyncAction.unknown,
             updatedAt: expect.any(String),
         }));
