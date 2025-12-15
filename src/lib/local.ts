@@ -64,7 +64,9 @@ export async function scanLocalFiles(
             deployFile = fileMap.get(relativePath)!;
             deployFile.action = SyncAction.unchanged;
 
-            if (localHash !== deployFile.remoteHash ||
+            if (
+                forceUpload ||
+                localHash !== deployFile.remoteHash ||
                 localSize !== deployFile.remoteSize ||
                 contentType !== deployFile.contentType ||
                 contentDisposition !== deployFile.contentDisposition ||

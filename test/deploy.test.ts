@@ -482,10 +482,12 @@ describe("deploy.ts - executeDeploy", () => {
                     {
                         includeGlob: ["**/*.html"],
                         cacheControl: "no-cache",
+                        skipUnchanged: true,
                     },
                     {
                         includeGlob: ["**/*.css"],
                         cacheControl: "max-age=3600",
+                        skipUnchanged: true,
                         purge: { keepDays: 1, keepVersions: 1 },
                     },
                 ],
@@ -501,58 +503,90 @@ describe("deploy.ts - executeDeploy", () => {
             logger
         ];
 
-        // Deploy with state enabled but no state file exists (empty state)
-        // Scan should automatically happen
-        const deployResult = await executeDeploy(
+        // Test 1: Migrate with state enabled but no state file exists (empty state)
+        const migrateResult = await executeDeploy(
             ...deployConfig,
         );
 
+        expect(migrateResult.result).toBe("success");
+        expect(migrateResult.files.get(existingFile1)?.action).toEqual(SyncAction.defunct);
+        expect(migrateResult.files.get(existingFile2)?.action).toEqual(SyncAction.defunct);
+        expect(migrateResult.files.get(existingFile1)?.action).toEqual(SyncAction.defunct);
+        expect(migrateResult.files.get(existingFile2)?.action).toEqual(SyncAction.defunct);
 
-        expect(deployResult.result).toBe("success");
+        const postMigrateState = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix }, logger);
+        expect(postMigrateState.size).toBe(4);
+        expect(Array.from(postMigrateState.keys())).toEqual(expect.arrayContaining([existingFile1, existingFile2, "index.html", "global.css"]));
 
-        // Verify scan happened automatically - existing files should be found with versions
-        const existingFiles = [existingFile1, existingFile2].map(key => deployResult.files.get(key));
-        existingFiles.forEach(file => {
-            expect(file).toBeDefined();
-            expect(file?.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-        });
-
-        // Verify local files also have updatedAt
-        const localFiles = ["index.html", "global.css"].map(key => deployResult.files.get(key));
-        localFiles.forEach(file => {
-            expect(file?.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-        });
-
-        // get state file
-        const state = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix }, logger);
-
-        expect(state.size).toBe(4);
-        expect(state.get(existingFile1)).toEqual(expect.objectContaining({
-            action: SyncAction.unknown,
-            updatedAt: expect.any(String),
-        }));
-        expect(state.get(existingFile2)).toEqual(expect.objectContaining({
-            action: SyncAction.unknown,
-            updatedAt: expect.any(String),
-        }));
-
-
-        // Make sure the state still contains all files
-        await executeDeploy(
+        // Test 2: Rerun should not change files, state should still contain all files, timestamps should be bew
+        const nochangeResult = await executeDeploy(
             ...deployConfig,
         );
 
-        // get state file
-        const state2 = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix }, logger);
+        expect(nochangeResult.result).toBe("success");
+        expect(nochangeResult.files.get("index.html")).toEqual(expect.objectContaining({
+            action: SyncAction.unchanged,
+            updatedAt: expect.any(String),
+        }));
+        expect(nochangeResult.files.get("global.css")).toEqual(expect.objectContaining({
+            action: SyncAction.unchanged,
+            updatedAt: expect.any(String),
+        }));
+        expect(nochangeResult.files.get(existingFile1)).toEqual(expect.objectContaining({
+            action: SyncAction.unknown, // file not local, we dont know if its still on s3
+            updatedAt: expect.any(String),
+        }));
+        expect(nochangeResult.files.get(existingFile2)).toEqual(expect.objectContaining({
+            action: SyncAction.unknown,
+            updatedAt: expect.any(String),
+        }));
 
-        expect(state2.size).toBe(4);
-        expect(state2.get(existingFile1)).toEqual(expect.objectContaining({
+        const postNochangeState = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix }, logger);
+        expect(postNochangeState.size).toBe(4);
+        expect(Array.from(postNochangeState.keys())).toEqual(expect.arrayContaining([existingFile1, existingFile2, "index.html", "global.css"]));
+
+        // Test 3: Force upload should update the file
+        const forceUploadResult = await executeDeploy(
+            deployConfig[0],
+            { apply: true, force: true },
+        );
+
+        expect(forceUploadResult.result).toBe("success");
+        expect(forceUploadResult.files.get("index.html")).toEqual(expect.objectContaining({
+            action: SyncAction.update,
+            updatedAt: expect.any(String),
+        }));
+        expect(forceUploadResult.files.get("global.css")).toEqual(expect.objectContaining({
+            action: SyncAction.update,
+            updatedAt: expect.any(String),
+        }));
+        expect(forceUploadResult.files.get(existingFile1)).toEqual(expect.objectContaining({
             action: SyncAction.unknown,
             updatedAt: expect.any(String),
         }));
-        expect(state2.get(existingFile2)).toEqual(expect.objectContaining({
+        expect(forceUploadResult.files.get(existingFile2)).toEqual(expect.objectContaining({
             action: SyncAction.unknown,
             updatedAt: expect.any(String),
         }));
+
+        const postForceUploadState = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix }, logger);
+        expect(postForceUploadState.size).toBe(4);
+        expect(Array.from(postForceUploadState.keys())).toEqual(expect.arrayContaining([existingFile1, existingFile2, "index.html", "global.css"]));
+
+        // Test 4: Purge should delete the files
+        const purgeResult = await executeDeploy(
+            deployConfig[0],
+            { apply: true, purge: true },
+        );
+
+        expect(purgeResult.result).toBe("success");
+        expect(purgeResult.files.get("index.html")?.action).toEqual(SyncAction.unchanged);
+        expect(purgeResult.files.get("global.css")?.action).toEqual(SyncAction.unchanged);
+        expect(purgeResult.files.get(existingFile1)?.action).toEqual(SyncAction.delete);
+        expect(purgeResult.files.get(existingFile2)?.action).toEqual(SyncAction.delete);
+
+        const postPurgeState = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix }, logger);
+        expect(postPurgeState.size).toBe(2);
+        expect(Array.from(postPurgeState.keys())).toEqual(expect.arrayContaining(["index.html", "global.css"]));
     });
 });
