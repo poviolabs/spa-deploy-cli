@@ -3,15 +3,14 @@ import * as z from "zod";
 
 
 export enum SyncAction {
-    ignored = "Ignored",
-    unchanged = "Unchanged",
-    delete = "Delete",
-    update = "Update",
-    create = "Create",
-    unknown = "Unknown",
+    ignored = "Ignored", // file is ignored on all sides
+    unchanged = "Unchanged", // file is local and remote and is the same
+    delete = "Delete", // file is remote and will be deleted
+    update = "Update", // file is local and will be updated remotely
+    create = "Create", // file is local and will be uploaded remotely
+    unknown = "Unknown", // file might be remote but not confirmed
+    defunct = "Defunct", // file is remote and beeing kept but no longer exists locally
 }
-
-
 
 export interface DeployFile {
     key: string;
@@ -43,7 +42,7 @@ export const fileConfig = z.object({
     includeGlob: z.union([z.string(), z.array(z.string())]),
     cacheControl: z.string().optional(),
     skipUnchanged: z.boolean().optional(),
-    purge: z.boolean().optional(),
+    purge: z.union([z.boolean(), z.object({ keepDays: z.number().optional(), keepVersions: z.number().optional() })]).optional(),
     ignore: z.boolean().optional(),
     invalidate: z.boolean().optional(),
     contentType: z.string().optional(),
@@ -63,7 +62,7 @@ export const s3Config = z.object({
     scan: z.boolean().optional(),
     stateFile: z.union([z.boolean(), z.string()]).optional(),
     skipUnchanged: z.boolean().optional(),
-    purge: z.boolean().optional(),
+    purge: z.union([z.boolean(), z.object({ keepDays: z.number().optional(), keepVersions: z.number().optional() })]).optional(),
     context: contextConfig.optional(),
     acl: z.string().optional(),
 });

@@ -40,6 +40,13 @@ export async function executeDeploy(
 
     const stateFile = !deploy.s3.stateFile ? false : typeof deploy.s3.stateFile === 'string' ? deploy.s3.stateFile : `.spa-deploy/files.json`;
 
+    // if not stateFile and purge is custom, error out
+    if (!stateFile) {
+        if (typeof purge === 'object' || fileConfigs.some(file => file.purge && typeof file.purge === 'object')) {
+            throw new Error("State file is required when using purge.keepDays or purge.keepVersions");
+        }
+    }
+
     logger.info("> Starting deployment ...");
 
     let fileMap = new Map<string, DeployFile>();
@@ -51,6 +58,7 @@ export async function executeDeploy(
             ...deploy.context,
             ...deploy.s3.context,
         }), { bucket, prefix: deploy.s3.prefix }, logger);
+        // ignore state file
         fileConfigs = [{ includeGlob: [picomatch(stateFile)], ignore: true, skipUnchanged: false }, ...fileConfigs];
     }
 
@@ -65,7 +73,7 @@ export async function executeDeploy(
             {
                 bucket,
                 prefix: deploy.s3.prefix,
-                purge,
+                purge: purge === true, // scan can only handle unconditional purge
                 context: {
                     ...deploy.context,
                     ...deploy.s3.context,
@@ -75,7 +83,60 @@ export async function executeDeploy(
         );
     } else {
         logger.info("\n> Skipping S3 Scan");
+    }
 
+    if (stateFile) {
+        if (purge === true) {
+            // remove all files that are not from this deployment
+            fileMap.forEach((file) => {
+                if (file.action === SyncAction.unknown || file.action === SyncAction.defunct) {
+                    file.action = SyncAction.delete;
+                }
+            });
+        } else if (typeof purge === 'object' && (purge.keepDays || purge.keepVersions)) {
+            // keep all files that were valid within keepDays or within keepVersions
+            let versionsToDelete = new Set<string>();
+
+            const defunctFiles = Array.from(fileMap.values()).filter(file => [SyncAction.unknown, SyncAction.defunct].includes(file.action));
+            {
+                const keepVersions = purge.keepVersions ?? 0;
+                let daysFullfilled = false;
+                const versionMap = new Map<string, number>();
+                for (const file of defunctFiles) {
+                    if (file.updatedAt && !versionMap.has(file.updatedAt)) {
+                        versionMap.set(file.updatedAt, new Date(file.updatedAt).getTime());
+                    }
+                }
+                const versions = Array.from(versionMap.entries()).sort(([, a], [, b]) => b - a);
+
+                const now = Date.now();
+                const keepDaysMs = (purge.keepDays ?? 0) * 24 * 60 * 60 * 1000;
+                const versionsToKeep = new Set<string>();
+                for (const [version, time] of versions) {
+                    if (time > now - keepDaysMs) {
+                        versionsToKeep.add(version);
+                    } else if (!daysFullfilled) {
+                        daysFullfilled = true;
+                        versionsToKeep.add(version);
+                    } else if (versionsToKeep.size < keepVersions) {
+                        versionsToKeep.add(version);
+                    } else {
+                        break;
+                    }
+                }
+
+                versionsToDelete = new Set(versions.filter(([version]) => !versionsToKeep.has(version)).map(([version]) => version));
+            }
+
+            for (const version of versionsToDelete) {
+                logger.info(`> Deleting version ${version}`);
+            }
+            for (const file of defunctFiles) {
+                if (file.updatedAt && versionsToDelete.has(file.updatedAt)) {
+                    file.action = SyncAction.delete;
+                }
+            }
+        }
     }
 
     logger.info("\n--------------------------------");

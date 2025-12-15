@@ -137,15 +137,18 @@ export async function scanS3Files(
                     }
                 } else {
                     // no local file exists
-                    let action = purge ? SyncAction.delete : SyncAction.unknown;
+                    let action = purge ? SyncAction.delete : SyncAction.defunct;
                     const matchingFile = fileConfigs.find(file => file.includeGlob.some(glob => glob(key)));
                     if (matchingFile) {
                         if (matchingFile.ignore) {
                             // dont even record ignored files
                             continue;
                         }
-                        if (purge || matchingFile.purge) {
+                        if (purge || matchingFile.purge === true) {
                             action = SyncAction.delete;
+                        } else {
+                            // file is still present on S3, mark as defunct
+                            action = SyncAction.defunct;
                         }
                     }
                     fileMap.set(key, {
@@ -163,6 +166,14 @@ export async function scanS3Files(
         logger.error(`Failed to scan S3 bucket: ${error}`);
         throw error;
     }
+
+    // all unknown files are no longer on s3 or local, remove them from the stage
+    fileMap.forEach((file, key) => {
+        if (file.action === SyncAction.unknown) {
+            fileMap.delete(key);
+        }
+    });
+
     return fileMap;
 }
 

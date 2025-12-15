@@ -12,7 +12,7 @@ Static SPA deploy:
 
 Examples:
 
-- [Vue Basic](./examples/vue-basic)
+- [Vite](./examples/vite)
 
 # Setup
 
@@ -115,6 +115,13 @@ deploy:
       # Delete all ignored/unknown files
       #  requires scan or stateFile
       #purge: false
+
+      # Keep versions for x days or x versions
+      #  requires stateFile
+      #purge:
+      #  keepDays: 2 
+      #  keepVersions: 2
+
       
       # Set ACL, not needed if using bucket policy
       #acl: "public-read"

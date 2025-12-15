@@ -6,7 +6,7 @@ import { Logger } from "../src/helpers/logger";
 import { executeDeploy } from "../src/lib/deploy";
 import { SyncAction } from "../src/lib/deploy.types";
 import { getS3ClientInstance, uploadFileToS3 } from "../src/lib/s3";
-import { getState } from "../src/lib/state";
+import { getState, saveState } from "../src/lib/state";
 import {
     TEST_BUCKET,
     cleanupS3Bucket,
@@ -235,8 +235,7 @@ describe("deploy.ts - executeDeploy", () => {
         );
 
         // should be unknown, only css files should be purged
-        expect(deployResult.files.get(dummyKey)!.action).toBe(SyncAction.unknown);
-
+        expect(deployResult.files.get(dummyKey)!.action).toBe(SyncAction.defunct);
 
         const deployResult2 = await executeDeploy(
             {
@@ -339,5 +338,115 @@ describe("deploy.ts - executeDeploy", () => {
             // updatedAt should be new
             updatedAt: deployedIndexHtml2.updatedAt,
         });
+    });
+
+    test("should keep versions based on keepDays and keepVersions", async () => {
+        const stateFile = "files.json";
+        const DAY_MS = 24 * 60 * 60 * 1000;
+
+        // Create a state with files from different versions
+        const insertHistory = async (days: number[]) => {
+            const initialState = new Map<string, any>();
+            for (const day of days) {
+                const updatedAt = new Date(Date.now() - day * DAY_MS).toISOString();
+                initialState.set(`file${day}.html`, {
+                    key: `file${day}.html`,
+                    remoteHash: 'random-hash',
+                    remoteSize: 100,
+                    updatedAt,
+                    action: SyncAction.unchanged,
+                });
+            }
+            await saveState(initialState, s3Client, {
+                bucket: s3Config.bucket,
+                prefix: s3Prefix,
+                stateFile,
+            }, logger);
+        }
+
+        await insertHistory([1, 4, 5, 6]);
+
+        const createDeployConfig = (override: { purge?: { keepDays?: number; keepVersions?: number }, stateFile?: string | boolean }) => ({
+            prefix: testDir,
+            files: [{ includeGlob: ["**/*.html"], skipUnchanged: true }],
+            s3: {
+                ...s3Config,
+                stateFile,
+                ...override
+            },
+        });
+
+        // Test 1: purge with keepDays: 2
+        // Should keep files from 1 and 4 days ago (within 2 days, or at least one if none within)
+        const deployResult1 = await executeDeploy(
+            createDeployConfig({ purge: { keepDays: 2, keepVersions: 0 } }),
+            { apply: false },
+            logger
+        );
+
+        // Files from 1 and 4 days ago should be kept
+        const keptInTest1 = ["file1.html", "file4.html"];
+        for (const fileName of keptInTest1) {
+            expect(deployResult1.files.get(fileName)?.action).not.toBe(SyncAction.delete);
+        }
+        // Files from 5 and 6 days ago should be deleted
+        const deletedInTest1 = ["file5.html", "file6.html"];
+        for (const fileName of deletedInTest1) {
+            expect(deployResult1.files.get(fileName)?.action).toBe(SyncAction.delete);
+        }
+
+        // Test 2: purge with keepVersions: 3
+        // Should keep files from 1, 4, and 5 days ago (3 most recent versions)
+        await insertHistory([1, 4, 5, 6]);
+        const deployResult2 = await executeDeploy(
+            createDeployConfig({ purge: { keepVersions: 3, keepDays: 0 } }),
+            { apply: false },
+            logger
+        );
+
+        // Files from 1, 4, and 5 days ago should be kept (3 most recent versions)
+        const keptInTest2 = ["file1.html", "file2.html", "file5.html"];
+        for (const fileName of keptInTest2) {
+            expect(deployResult2.files.get(fileName)?.action).not.toBe(SyncAction.delete);
+        }
+        // Files from 6 days ago should be deleted
+        const deletedInTest2 = ["file6.html"];
+        for (const fileName of deletedInTest2) {
+            expect(deployResult2.files.get(fileName)?.action).toBe(SyncAction.delete);
+        }
+
+        // Test 3: purge with scan
+        await insertHistory([1, 4, 5, 6]);
+        const deployResult3 = await executeDeploy(
+            createDeployConfig({ purge: { keepDays: 0, keepVersions: 0 } }),
+            { apply: false, scan: true },
+            logger
+        );
+
+        // All files should be gone
+        expect(deployResult3.files.size).toBe(1);
+        expect(deployResult3.files.get("index.html")?.action).toBe(SyncAction.create);
+
+        // Test 4: override purge with scan
+        await insertHistory([1, 4, 5, 6]);
+        const deployResult4 = await executeDeploy(
+            createDeployConfig({ purge: { keepDays: 5, keepVersions: 5 } }),
+            { apply: false, scan: true, purge: true },
+            logger
+        );
+
+        // All files should be gone
+        expect(deployResult4.files.size).toBe(1);
+        expect(deployResult4.files.get("index.html")?.action).toBe(SyncAction.create);
+
+        // Test 5: keepDays and keepVersions should error out when state file is not present
+        expect(
+            async () => executeDeploy(
+                createDeployConfig({ purge: { keepDays: 5, keepVersions: 5 }, stateFile: false }),
+                { apply: false, scan: true },
+                logger
+            )
+        ).rejects.toThrow("State file is required when using purge.keepDays or purge.keepVersions");
+
     });
 });
