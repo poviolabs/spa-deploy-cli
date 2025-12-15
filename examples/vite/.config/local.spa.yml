@@ -1,0 +1,13 @@
+configs:
+  - name: html
+    values:
+      - name: "APP_RELEASE"
+        value: "local"
+      - name: "APP_STAGE"
+        valueFrom: "func:stage"
+
+inject:
+  - name: "html"
+    sourceGlob: "**/*.html"
+    sourcePrefix: "dist"
+    config: html

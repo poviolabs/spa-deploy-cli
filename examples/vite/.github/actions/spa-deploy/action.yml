@@ -1,0 +1,28 @@
+name: "SPA Deploy"
+description: "Deploy a Single Page Application"
+
+inputs:
+  STAGE:
+    description: "The stage to deploy to"
+    required: true
+
+runs:
+  using: "composite"
+
+  steps:
+    - uses: actions/checkout@v5
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: .nvmrc
+        cache: yarn
+
+    - run: yarn install --immutable
+
+    - run: yarn build
+      shell: bash
+
+    - run: >-
+        RELEASE=$GITHUB_SHA
+        yarn dlx @povio/spa-deploy-cli@5.0 deploy --stage ${{ inputs.STAGE }} --release $GITHUB_SHA --apply
+      shell: bash

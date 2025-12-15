@@ -1,0 +1,36 @@
+configs:
+  - name: html
+    values:
+      - name: "APP_RELEASE"
+        valueFrom: "env:RELEASE"
+      - name: "APP_STAGE"
+        valueFrom: "func:stage"
+
+inject:
+  - name: "html"
+    sourceGlob: "**/*.html"
+    sourcePrefix: "dist"
+    config: html
+
+deploy:
+    prefix: dist
+    files:
+      - includeGlob: "**/*.html"
+        cacheControl: "must-revalidate"
+        purge: true
+        priority: 2
+      - includeGlob: "assets/**/*"
+        cacheControl: "max-age=2628000, public"
+        priority: 1
+        purge:
+          keepDays: 1
+          keepVersions: 1
+    s3:
+        bucket: myapp-dev-website
+        
+    cloudfront:
+      - distributionId: E0000000000000
+        invalidatePaths:
+          - "/index.html"
+          
+    

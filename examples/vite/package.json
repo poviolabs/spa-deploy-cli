@@ -1,0 +1,19 @@
+{
+  "name": "vite",
+  "packageManager": "yarn@4.12.0",
+  "devDependencies": {
+    "@povio/resolve-config": "^1.2.0",
+    "@povio/spa-deploy-cli": "../..",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "vite": "^7.2.7"
+  },
+  "scripts": {
+    "dev": "vite --open",
+    "preview": "vite preview",
+    "build": "vite build"
+  },
+  "resolutions": {
+    "@povio/spa-deploy-cli": "portal:../../"
+  }
+}
