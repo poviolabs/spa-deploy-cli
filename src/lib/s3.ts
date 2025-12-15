@@ -98,6 +98,10 @@ export async function scanS3Files(
     }
     const client = getS3ClientInstance(context);
 
+    // fist version is the oldest version of the files in the map minus 5 seconds
+    // this is used to migrate to the state file format
+    const firstVersion = new Date(Math.min(new Date().getTime(), ...Object.values(fileMap).map(file => new Date(file.updatedAt).getTime())) - 5000).toISOString();
+
     try {
         for await (const data of paginateListObjectsV2(
             {
@@ -121,6 +125,10 @@ export async function scanS3Files(
                 if (file) {
                     file.remoteHash = remoteHash;
                     file.remoteSize = remoteSize;
+
+                    if (!file.updatedAt) {
+                        file.updatedAt = firstVersion;
+                    }
 
                     if (file.action === SyncAction.ignored) {
                         // should not happen but just in case
@@ -157,6 +165,7 @@ export async function scanS3Files(
                         action,
                         remoteHash,
                         remoteSize,
+                        updatedAt: firstVersion
                     });
                 }
                 logger.debug(`>> ${key} (hash: ${remoteHash}, size: ${remoteSize})`);

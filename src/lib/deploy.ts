@@ -29,7 +29,7 @@ export async function executeDeploy(
     const deploy = deployConfig.parse(config);
     const { apply, force } = options;
 
-    const scan = options.scan || deploy.s3.scan || false;
+    let scan = options.scan || deploy.s3.scan || false;
     const bucket = deploy.s3.bucket;
     const purge = options.purge || deploy.s3.purge || false;
 
@@ -60,6 +60,12 @@ export async function executeDeploy(
         }), { bucket, prefix: deploy.s3.prefix }, logger);
         // ignore state file
         fileConfigs = [{ includeGlob: [picomatch(stateFile)], ignore: true, skipUnchanged: false }, ...fileConfigs];
+
+        // If state is enabled but empty, automatically enable scan
+        if (fileMap.size === 0 && !scan && !options.scan) {
+            logger.info(`\n> State file is empty, automatically enabling scan...`);
+            scan = true;
+        }
     }
 
     logger.info("\n> Scanning local files...");

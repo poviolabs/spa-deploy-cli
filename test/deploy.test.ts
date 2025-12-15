@@ -449,4 +449,88 @@ describe("deploy.ts - executeDeploy", () => {
         ).rejects.toThrow("State file is required when using purge.keepDays or purge.keepVersions");
 
     });
+
+    test("should migrate to state file", async () => {
+        const stateFile = "files.json";
+        const prefix = `${s3Prefix}/migration-test`;
+        const existingFile1 = "existing-file-1.html";
+        const existingFile2 = "existing-file-2.css";
+        const s3Options = { bucket: s3Config.bucket, prefix };
+
+        // Upload existing files to S3 in parallel
+        await Promise.all([
+            uploadFileToS3({
+                key: existingFile1,
+                localPath: join(testDir, "index.html"),
+                action: SyncAction.create,
+                contentType: "text/html",
+                priority: 0,
+            }, s3Client, s3Options, logger),
+            uploadFileToS3({
+                key: existingFile2,
+                localPath: join(testDir, "global.css"),
+                action: SyncAction.create,
+                contentType: "text/css",
+                priority: 0,
+            }, s3Client, s3Options, logger),
+        ]);
+
+        // Deploy with state enabled but no state file exists (empty state)
+        // Scan should automatically happen
+        const deployResult = await executeDeploy(
+            {
+                prefix: testDir,
+                files: [
+                    {
+                        includeGlob: ["**/*.html"],
+                        cacheControl: "no-cache",
+                    },
+                    {
+                        includeGlob: ["**/*.css"],
+                        cacheControl: "max-age=3600",
+                        purge: { keepDays: 1, keepVersions: 1 },
+                    },
+                ],
+                s3: {
+                    ...s3Config,
+                    prefix,
+                    stateFile,
+                },
+            },
+            {
+                apply: true,
+            },
+            logger
+        );
+
+
+        expect(deployResult.result).toBe("success");
+
+        // Verify scan happened automatically - existing files should be found with versions
+        const existingFiles = [existingFile1, existingFile2].map(key => deployResult.files.get(key));
+        existingFiles.forEach(file => {
+            expect(file).toBeDefined();
+            expect(file?.updatedAt).toBeDefined();
+            expect(file?.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+        });
+
+        // Verify local files also have updatedAt
+        const localFiles = ["index.html", "global.css"].map(key => deployResult.files.get(key));
+        localFiles.forEach(file => {
+            expect(file?.updatedAt).toBeDefined();
+        });
+
+        // get state file
+        const state = await getState(stateFile, s3Client, { bucket: s3Config.bucket, prefix }, logger);
+
+        expect(state.size).toBe(4);
+        expect(state.get(existingFile1)).toEqual(expect.objectContaining({
+            action: SyncAction.unknown,
+            updatedAt: expect.any(String),
+        }));
+        expect(state.get(existingFile2)).toEqual(expect.objectContaining({
+            action: SyncAction.unknown,
+            updatedAt: expect.any(String),
+        }));
+    });
 });

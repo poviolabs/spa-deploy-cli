@@ -87,7 +87,7 @@ export async function saveState(state: Map<string, DeployFile>, client: S3Client
     // Convert state to a simplified format for storage
     const stateEntries: StateFileEntry[] = [];
     for (const file of state.values()) {
-        if (![SyncAction.create, SyncAction.update, SyncAction.unchanged].includes(file.action)) {
+        if (![SyncAction.create, SyncAction.update, SyncAction.unchanged, SyncAction.defunct].includes(file.action)) {
             // state should only contain the needed files
             continue;
         }
