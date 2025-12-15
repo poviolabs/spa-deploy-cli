@@ -61,7 +61,7 @@ deploy:
     - includeGlob: **/*.html
 
       # Set cache
-      cacheControl: "no-cache, no-store, must-revalidate"
+      cacheControl: "no-cache, must-revalidate"
 
       # Do not re-upload files if unchanged, requires scan or stateFile
       #skipUnchanged: false
@@ -91,6 +91,11 @@ deploy:
     - includeGlob: 
         - favicon.ico
         - assets/**/*
+      skipUnchanged: true
+      cacheControl: "public, max-age=2628000, immutable"
+      purge:
+        keepDays: 2
+        keepVersions: 2
 
       priority: 1
       cacheControl: "max-age=2628000, public"

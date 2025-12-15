@@ -13,7 +13,7 @@ deploy:
     
     files:
       - includeGlob: "**/*.html"
-        cacheControl: "no-cache, no-store, must-revalidate"
+        cacheControl: "no-cache, must-revalidate"
         # Targeted invalidation
         #invalidate: false
         purge: true
