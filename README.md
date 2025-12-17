@@ -45,7 +45,48 @@ yarn spa-deploy deploy --stage myapp-stg --apply
 
 ## Config
 
+#### Simple SPA Config
+
 `.config/myapp-dev.spa.yml`
+```yaml
+deploy:
+
+  context:
+    accountId: "000000000000"
+    region: us-east-1
+
+  s3:
+      bucket: myapp-dev-website
+      stateFile: true
+          
+  cloudfront:
+    distributionId: CF000000000000
+
+  prefix: dist
+
+  files:
+    - includeGlob: "**/*.html"
+      cacheControl: "no-cache, must-revalidate"
+      purge: true
+      invalidate: true
+      priority: 2
+
+    - includeGlob: 
+        - "assets/**/*"
+      cacheControl: "public, max-age=2628000, immutable"
+      priority: 1
+      purge:
+        keepDays: 2
+        keepVersions: 2
+
+    - includeGlob: "**/*"
+      cacheControl: "no-cache, must-revalidate"
+      invalidate: true
+      priority: 2
+```
+
+#### All config options
+
 ```yaml
 deploy:
 
@@ -58,7 +99,8 @@ deploy:
   prefix: dist
   
   files:
-    - includeGlob: **/*.html
+    - includeGlob:
+        - "**/*.html"
 
       # Set cache
       cacheControl: "no-cache, must-revalidate"
@@ -83,22 +125,11 @@ deploy:
       #acl: "public-read"
 
       # Priority, lower number is uploaded first
+      #  assets should be uploaded before HTML files
       #priority: 2
 
       # Ignore this pattern entirely
       #ignore: false
-
-    - includeGlob: 
-        - favicon.ico
-        - assets/**/*
-      skipUnchanged: true
-      cacheControl: "public, max-age=2628000, immutable"
-      purge:
-        keepDays: 2
-        keepVersions: 2
-
-      priority: 1
-      cacheControl: "max-age=2628000, public"
       
   s3:
       bucket: myapp-dev-website
@@ -131,10 +162,11 @@ deploy:
       # Set ACL, not needed if using bucket policy
       #acl: "public-read"
           
-    cloudfront:
-      distributionId: CF000000000000
-      invalidatePaths: 
-        - "/*"
+  cloudfront:
+    distributionId: CF000000000000
+    invalidatePaths: 
+      # it may be cheaper to just invalidate everything
+      - "/*"
 ```
 
 

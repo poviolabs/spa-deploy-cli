@@ -13,24 +13,37 @@ inject:
     config: html
 
 deploy:
-    prefix: dist
-    files:
-      - includeGlob: "**/*.html"
-        cacheControl: "must-revalidate"
-        purge: true
-        priority: 2
-      - includeGlob: "assets/**/*"
-        cacheControl: "max-age=2628000, public"
-        priority: 1
-        purge:
-          keepDays: 1
-          keepVersions: 1
-    s3:
-        bucket: myapp-dev-website
-        
-    cloudfront:
-      - distributionId: E0000000000000
-        invalidatePaths:
-          - "/index.html"
-          
-    
+
+  context:
+    accountId: "000000000000"
+    region: us-east-1
+
+  s3:
+      bucket: myapp-dev-website
+      stateFile: true
+
+  cloudfront:
+    distributionId: CF000000000000
+
+  prefix: dist
+
+  files:
+    - includeGlob: "**/*.html"
+      cacheControl: "no-cache, must-revalidate"
+      purge: true
+      invalidate: true
+      priority: 2
+
+    - includeGlob:
+        - "assets/**/*"
+      cacheControl: "public, max-age=2628000, immutable"
+      priority: 1
+      purge:
+        keepDays: 2
+        keepVersions: 2
+
+    - includeGlob: "**/*"
+      cacheControl: "no-cache, must-revalidate"
+      invalidate: true
+      priority: 2
+
