@@ -6,8 +6,8 @@ import { lookup } from "mime-types";
 import { Logger } from "../helpers/logger";
 import { type DeployFile, type FileConfig, SyncAction } from "./deploy.types";
 
-const WHITELISTED_DOT_DIRECTORY_GLOBS = [
-    // Android App Links and Apple Universal Links association manifests.
+const WHITELISTED_GLOBS = [
+    
     ".well-known/**/*",
 ];
 
@@ -33,7 +33,7 @@ export async function scanLocalFiles(
     const absPrefix = resolve(options.prefix);
     const updatedAt = new Date().toISOString();
 
-    for await (const relativePath of glob(["**/*", ...WHITELISTED_DOT_DIRECTORY_GLOBS], { cwd: absPrefix })) {
+    for await (const relativePath of glob(["**/*", ...WHITELISTED_GLOBS], { cwd: absPrefix })) {
 
         const matchingSource = fileConfigs.find(f => f.includeGlob.some(glob => glob(relativePath)));
         if (!matchingSource) {
