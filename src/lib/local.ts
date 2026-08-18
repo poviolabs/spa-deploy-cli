@@ -6,10 +6,7 @@ import { lookup } from "mime-types";
 import { Logger } from "../helpers/logger";
 import { type DeployFile, type FileConfig, SyncAction } from "./deploy.types";
 
-const WHITELISTED_GLOBS = [
-    
-    ".well-known/**/*",
-];
+const WHITELISTED_GLOBS = [".well-known/**/*"];
 
 async function fileMd5(path: string): Promise<string> {
     const fs = await import("node:fs");
