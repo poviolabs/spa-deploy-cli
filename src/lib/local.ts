@@ -6,6 +6,11 @@ import { lookup } from "mime-types";
 import { Logger } from "../helpers/logger";
 import { type DeployFile, type FileConfig, SyncAction } from "./deploy.types";
 
+const WHITELISTED_DOT_DIRECTORY_GLOBS = [
+    // Android App Links and Apple Universal Links association manifests.
+    ".well-known/**/*",
+];
+
 async function fileMd5(path: string): Promise<string> {
     const fs = await import("node:fs");
     return new Promise((resolve, reject) => {
@@ -28,8 +33,7 @@ export async function scanLocalFiles(
     const absPrefix = resolve(options.prefix);
     const updatedAt = new Date().toISOString();
 
-    // Include the whitelisted .well-known directory, which a bare **/* glob skips.
-    for await (const relativePath of glob(["**/*", ".well-known/**/*"], { cwd: absPrefix })) {
+    for await (const relativePath of glob(["**/*", ...WHITELISTED_DOT_DIRECTORY_GLOBS], { cwd: absPrefix })) {
 
         const matchingSource = fileConfigs.find(f => f.includeGlob.some(glob => glob(relativePath)));
         if (!matchingSource) {
