@@ -6,6 +6,8 @@ import { lookup } from "mime-types";
 import { Logger } from "../helpers/logger";
 import { type DeployFile, type FileConfig, SyncAction } from "./deploy.types";
 
+const WHITELISTED_GLOBS = [".well-known/**/*"];
+
 async function fileMd5(path: string): Promise<string> {
     const fs = await import("node:fs");
     return new Promise((resolve, reject) => {
@@ -28,8 +30,7 @@ export async function scanLocalFiles(
     const absPrefix = resolve(options.prefix);
     const updatedAt = new Date().toISOString();
 
-    // list all files in the prefix
-    for await (const relativePath of glob("**/*", { cwd: absPrefix })) {
+    for await (const relativePath of glob(["**/*", ...WHITELISTED_GLOBS], { cwd: absPrefix })) {
 
         const matchingSource = fileConfigs.find(f => f.includeGlob.some(glob => glob(relativePath)));
         if (!matchingSource) {

@@ -74,6 +74,35 @@ describe("local.ts - scanLocalFiles", () => {
         expect(singleConfigFiles.has("global.css")).toBe(true);
     });
 
+    test("should scan files in dot-directories when explicitly included", async () => {
+        const files = await scanLocalFiles(
+            new Map(),
+            [
+                {
+                    includeGlob: [picomatch(".well-known/apple-app-site-association")],
+                    contentType: "application/json",
+                },
+                {
+                    includeGlob: [picomatch(".well-known/assetlinks.json")],
+                    contentType: "application/json",
+                },
+            ],
+            { prefix: testDir },
+            logger,
+        );
+
+        expect(Array.from(files.keys()).sort()).toEqual([
+            ".well-known/apple-app-site-association",
+            ".well-known/assetlinks.json",
+        ]);
+        expect(files.get(".well-known/apple-app-site-association")).toMatchObject({
+            contentType: "application/json",
+        });
+        expect(files.get(".well-known/assetlinks.json")).toMatchObject({
+            contentType: "application/json",
+        });
+    });
+
     test("should handle force flags and compute hash for update actions", async () => {
         const sourceDir = testDir;
 
