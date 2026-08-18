@@ -1,4 +1,4 @@
-import { glob, stat } from "node:fs/promises";
+import { readdir, stat } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { createHash } from "crypto";
 import { lookup } from "mime-types";
@@ -17,6 +17,21 @@ async function fileMd5(path: string): Promise<string> {
     });
 }
 
+async function* walkFiles(directory: string, relativeDirectory = ""): AsyncGenerator<string> {
+    const entries = await readdir(directory, { withFileTypes: true });
+
+    for (const entry of entries) {
+        const relativePath = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name;
+        const localPath = join(directory, entry.name);
+
+        if (entry.isDirectory()) {
+            yield* walkFiles(localPath, relativePath);
+        } else {
+            yield relativePath;
+        }
+    }
+}
+
 export async function scanLocalFiles(
     fileMap: Map<string, DeployFile> = new Map(),
     fileConfigs: FileConfig[],
@@ -28,8 +43,8 @@ export async function scanLocalFiles(
     const absPrefix = resolve(options.prefix);
     const updatedAt = new Date().toISOString();
 
-    // list all files in the prefix
-    for await (const relativePath of glob("**/*", { cwd: absPrefix })) {
+    // List all files in the prefix, including files in dot-directories.
+    for await (const relativePath of walkFiles(absPrefix)) {
 
         const matchingSource = fileConfigs.find(f => f.includeGlob.some(glob => glob(relativePath)));
         if (!matchingSource) {
